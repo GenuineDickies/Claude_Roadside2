@@ -24,74 +24,37 @@ $revenue = $pdo->query("
 ")->fetch();
 ?>
 
-<div class="row">
-    <div class="col-12">
-        <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
-        <p class="text-muted">Welcome back, <?php echo $_SESSION['username']; ?>!</p>
+<div class="rr-page-header" style="margin: -28px -28px 24px -28px;">
+    <div class="header-left">
+        <i class="fas fa-tachometer-alt header-icon"></i>
+        <div>
+            <h1>Dashboard</h1>
+            <div class="header-subtitle">Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?></div>
+        </div>
     </div>
 </div>
 
 <!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card stat-card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title"><?php echo $stats['total_customers']; ?></h4>
-                        <p class="card-text">Total Customers</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="rr-stats">
+    <div class="rr-stat navy">
+        <i class="fas fa-users rr-stat-icon"></i>
+        <div class="rr-stat-label">Total Customers</div>
+        <div class="rr-stat-value"><?php echo $stats['total_customers']; ?></div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title"><?php echo $stats['active_requests']; ?></h4>
-                        <p class="card-text">Active Requests</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-clipboard-list"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="rr-stat amber">
+        <i class="fas fa-clipboard-list rr-stat-icon"></i>
+        <div class="rr-stat-label">Active Requests</div>
+        <div class="rr-stat-value"><?php echo $stats['active_requests']; ?></div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title"><?php echo $stats['available_technicians']; ?></h4>
-                        <p class="card-text">Available Technicians</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-user-cog"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="rr-stat green">
+        <i class="fas fa-user-cog rr-stat-icon"></i>
+        <div class="rr-stat-label">Available Technicians</div>
+        <div class="rr-stat-value"><?php echo $stats['available_technicians']; ?></div>
     </div>
-    <div class="col-md-3">
-        <div class="card stat-card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="card-title"><?php echo format_currency($revenue['total']); ?></h4>
-                        <p class="card-text">Revenue (30 days)</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="rr-stat blue">
+        <i class="fas fa-dollar-sign rr-stat-icon"></i>
+        <div class="rr-stat-label">Revenue (30 Days)</div>
+        <div class="rr-stat-value" style="font-size: 24px;"><?php echo format_currency($revenue['total']); ?></div>
     </div>
 </div>
 
@@ -105,7 +68,10 @@ $revenue = $pdo->query("
             </div>
             <div class="card-body">
                 <?php if (empty($recentRequests)): ?>
-                    <p class="text-muted">No service requests found.</p>
+                    <div class="rr-empty">
+                        <i class="fas fa-clipboard-list"></i>
+                        No service requests found.
+                    </div>
                 <?php else: ?>
                     <div class="table-responsive">
                         <table class="table table-hover">

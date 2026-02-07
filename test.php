@@ -1,3 +1,3 @@
 <?php
-echo "B3 directory is accessible!";
+echo "RoadRunner Admin workspace is accessible!";
 ?>

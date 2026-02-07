@@ -23,6 +23,9 @@ composer.lock
 *.log
 error_log
 
+# Sessions
+sessions/
+
 # Temp files
 *.tmp
 *.bak

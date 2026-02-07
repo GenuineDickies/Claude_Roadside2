@@ -1,4 +1,4 @@
-# RoadRunner B3 — Compact Design Rules
+# RoadRunner Admin — Compact Design Rules
 <!-- ~200 lines. Read THIS first. Only read DESIGN.md for deep reference. -->
 
 ## Stack
@@ -136,20 +136,20 @@ Overlay: `rgba(0,0,0,0.75)` + `backdrop-filter:blur(4px)`. Surface: `var(--bg-su
 
 ## File Locations
 
-| What | Where | Deploy To |
-|------|-------|-----------|
-| Pages | `pages/*.php` | `public/B3/pages/` |
-| Router | `_working/index.php` | `public/B3/index.php` |
-| Catalog | `_working/services.php` | `public/B3/services.php` |
-| CSS | `assets/css/style.css` | `public/B3/assets/css/style.css` |
-| Config | `config/database.php` | `public/B3/config/database.php` |
-| Helpers | `includes/functions.php` | `public/B3/includes/functions.php` |
-| API | `api/*.php` | `public/B3/api/` |
+| What | Where |
+|------|-------|
+| Pages | `pages/*.php` |
+| Router | `_working/index.php` |
+| Catalog | `_working/services.php` |
+| CSS | `assets/css/style.css` |
+| Config | `config/database.php` |
+| Helpers | `includes/functions.php` |
+| API | `api/*.php` |
 
-## Deploy Command
-```powershell
-Copy-Item 'pages\file.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\pages\file.php' -Force
-```
+## URL
+`http://localhost/claude_admin2/`
+
+App runs directly from workspace — no separate deploy step needed.
 
 ## Database
 Host: `localhost` | User: `root` | Pass: `pass` | DB: `roadside_assistance`
@@ -169,4 +169,3 @@ Host: `localhost` | User: `root` | Pass: `pass` | DB: `roadside_assistance`
 7. ALWAYS use JetBrains Mono for data values (IDs, prices, dates)
 8. ALWAYS use DM Sans for UI text (labels, headings, body)
 9. ALWAYS use prepared statements for SQL queries
-10. ALWAYS deploy to production after creating/editing files

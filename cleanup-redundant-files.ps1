@@ -1,8 +1,8 @@
-# RoadRunner B3 - Redundant File Cleanup Script
+# RoadRunner Admin - Redundant File Cleanup Script
 # Created: February 5, 2026
 # Purpose: Remove duplicate files and organize workspace
 
-Write-Host "RoadRunner B3 - Workspace Cleanup" -ForegroundColor Cyan
+Write-Host "RoadRunner Admin - Workspace Cleanup" -ForegroundColor Cyan
 Write-Host "==================================`n" -ForegroundColor Cyan
 
 $workspaceRoot = "\\wsl.localhost\Ubuntu\var\www\html\claude_admin2"
@@ -31,12 +31,12 @@ foreach ($file in $filesToArchive) {
     }
 }
 
-# Remove the entire B3 subdirectory (complete duplicate)
-$b3Dir = Join-Path $workspaceRoot "B3"
-Write-Host "`n[2/4] Removing duplicate B3 directory..." -ForegroundColor Green
-if (Test-Path $b3Dir) {
-    Write-Host "  -> Removing: B3/ (complete duplicate)" -ForegroundColor Gray
-    Remove-Item -Path $b3Dir -Recurse -Force
+# Remove any stale duplicate subdirectory
+$dupeDir = Join-Path $workspaceRoot "B3"
+Write-Host "`n[2/4] Removing duplicate subdirectory if present..." -ForegroundColor Green
+if (Test-Path $dupeDir) {
+    Write-Host "  -> Removing stale duplicate" -ForegroundColor Gray
+    Remove-Item -Path $dupeDir -Recurse -Force
 }
 
 # Remove root-level duplicate page files (keep in pages/ directory only)
@@ -95,11 +95,7 @@ Write-Host "  [Keep] README.md       - Project notes" -ForegroundColor White
 Write-Host "  [Keep] .github/        - GitHub configuration" -ForegroundColor White
 Write-Host "  [New]  _working/       - Active development files" -ForegroundColor Yellow
 Write-Host "  [New]  _archive_reference/ - Original reference files" -ForegroundColor Yellow
-Write-Host "`n  [Removed] B3/         - Complete duplicate (deleted)" -ForegroundColor Red
-Write-Host "  [Removed] Root duplicates - Moved to _working/ or deleted" -ForegroundColor Red
+Write-Host "`n  [Removed] Root duplicates - Moved to _working/ or deleted" -ForegroundColor Red
 
-Write-Host "`nProduction Location: /var/www/html/public/B3/" -ForegroundColor Cyan
-Write-Host "Working Location:    /var/www/html/claude_admin2/" -ForegroundColor Cyan
-
-Write-Host "`nTo deploy changes to production:" -ForegroundColor Yellow
-Write-Host "  Copy-Item '_working\file.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\file.php'" -ForegroundColor Gray
+Write-Host "`nApp runs directly from workspace — no separate deploy needed." -ForegroundColor Cyan
+Write-Host "URL: http://localhost/claude_admin2/" -ForegroundColor Cyan

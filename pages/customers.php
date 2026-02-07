@@ -98,20 +98,24 @@ if ($action === 'list') {
 }
 ?>
 
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1><i class="fas fa-users"></i> Customers</h1>
-            <?php if ($action === 'list'): ?>
-                <a href="?page=customers&action=add" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Add Customer
-                </a>
-            <?php else: ?>
-                <a href="?page=customers" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to List
-                </a>
-            <?php endif; ?>
+<div class="rr-page-header" style="margin: -28px -28px 24px -28px;">
+    <div class="header-left">
+        <i class="fas fa-users header-icon"></i>
+        <div>
+            <h1>Customers</h1>
+            <div class="header-subtitle">Manage your customer database</div>
         </div>
+    </div>
+    <div class="header-actions">
+        <?php if ($action === 'list'): ?>
+            <a href="?page=customers&action=add" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Customer
+            </a>
+        <?php else: ?>
+            <a href="?page=customers" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        <?php endif; ?>
     </div>
 </div>
 

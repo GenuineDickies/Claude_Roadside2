@@ -19,8 +19,9 @@
 ### Development Environment
 
 **Workspace:** `\\wsl.localhost\Ubuntu\var\www\html\claude_admin2`  
-**Production:** `/var/www/html/public/B3/`  
-**URL:** `http://localhost/B3/`
+**URL:** `http://localhost/claude_admin2/`
+
+App runs directly from workspace — no separate deploy step needed.
 
 **Key Directories:**
 - `_working/` — Active development files (index.php, services.php, style.css)
@@ -1149,32 +1150,25 @@ function navigate(element) {
 | **📐 MATCH THE PATTERN** | Every page should have gradient header, proper card styling, consistent spacing. |
 | **🎭 SCOPE YOUR STYLES** | Use component-specific class prefixes to avoid conflicts (.dashboard-*, .services-*). |
 | **📱 RESPONSIVE BY DEFAULT** | Bootstrap handles responsive. Use its grid system. |
-| **📁 CREATE IN pages/** | New pages go in pages/ directory, not root. Deploy to production after creation. |
+| **📁 CREATE IN pages/** | New pages go in pages/ directory, not root. |
 
 ### Workspace Organization
 
-**Development Location:** `claude_admin2/` (your working directory)  
-**Production Location:** `/var/www/html/public/B3/` (Apache serves from here)
+**Location:** `claude_admin2/` (workspace = production, served directly)  
+**URL:** `http://localhost/claude_admin2/`
 
 **File Locations:**
 
-| File Type | Create In | Deploy To |
-|-----------|-----------|-----------|
-| **New pages** | `pages/new-page.php` | `public/B3/pages/new-page.php` |
-| **Main router** | `_working/index.php` | `public/B3/index.php` |
-| **Service catalog** | `_working/services.php` | `public/B3/services.php` |
-| **Global CSS** | `assets/css/style.css` | `public/B3/assets/css/style.css` |
-| **Helper functions** | `includes/functions.php` | `public/B3/includes/functions.php` |
-| **API endpoints** | `api/endpoint.php` | `public/B3/api/endpoint.php` |
+| File Type | Location |
+|-----------|----------|
+| **Pages** | `pages/*.php` |
+| **Main router** | `_working/index.php` |
+| **Service catalog** | `_working/services.php` |
+| **Global CSS** | `assets/css/style.css` |
+| **Helper functions** | `includes/functions.php` |
+| **API endpoints** | `api/*.php` |
 
-**After creating/editing files, deploy them:**
-```powershell
-# Deploy page
-Copy-Item 'pages\newpage.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\pages\newpage.php' -Force
-
-# Deploy router (if you added navigation)
-Copy-Item '_working\index.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\index.php' -Force
-```
+Edits are live immediately — no deploy step needed.
 
 ### Implementation Workflow
 
@@ -1517,76 +1511,25 @@ claude_admin2/                      — Development workspace
 └── test.php                        — 🧪 Testing utility
 ```
 
-### Production Structure
-
-```
-/var/www/html/public/B3/            — 🚀 Production (Apache serves from here)
-├── index.php                       — Main router
-├── services.php                    — Service catalog
-├── pages/                          — All page files
-├── config/                         — Database configuration
-├── includes/                       — Helper functions
-├── api/                            — API endpoints
-├── assets/                         — CSS, JS, images
-│   ├── css/style.css
-│   └── js/app.js
-├── DESIGN.md                       — Design documentation
-└── README.md                       — Project documentation
-```
-
 ### Development Workflow
 
-**1. Edit Files:**
+App runs directly from workspace — edits are live immediately.
+
+**URL:** `http://localhost/claude_admin2/`
+
+**Edit files in place:**
 ```bash
-# Core files (in _working/)
 code _working/index.php       # Main router
-code _working/services.php    # Service catalog
-code _working/style.css       # CSS overrides
-
-# Page files (in pages/)
-code pages/dashboard.php      # Or any other page
-code pages/customers.php
-
-# Global assets (in assets/)
+code pages/dashboard.php      # Page files
 code assets/css/style.css     # Global styles
-code assets/js/app.js         # Global JS
-```
-
-**2. Deploy to Production (PowerShell):**
-```powershell
-# Deploy main router
-Copy-Item '_working\index.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\index.php' -Force
-
-# Deploy service catalog
-Copy-Item '_working\services.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\services.php' -Force
-
-# Deploy CSS overrides to assets/
-Copy-Item '_working\style.css' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\assets\css\style.css' -Force
-
-# Deploy page file
-Copy-Item 'pages\dashboard.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\pages\dashboard.php' -Force
-
-# Deploy DESIGN.md
-Copy-Item 'DESIGN.md' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\DESIGN.md' -Force
-```
-
-**3. Quick Deploy All:**
-```powershell
-# Deploy everything at once
-Copy-Item '_working\*' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\' -Force
-Copy-Item 'pages\*' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\pages\' -Force
-Copy-Item 'assets\*' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\assets\' -Force -Recurse
-Copy-Item 'DESIGN.md' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\DESIGN.md' -Force
 ```
 
 ### Environment Configuration
 
 | Setting | Value |
 |---------|-------|
-| **Development Path** | `\\wsl.localhost\Ubuntu\var\www\html\claude_admin2` |
-| **Production Path** | `/var/www/html/public/B3/` |
-| **Apache DocumentRoot** | `/var/www/html/public/` |
-| **Application URL** | `http://localhost/B3/` |
+| **Workspace Path** | `\\wsl.localhost\Ubuntu\var\www\html\claude_admin2` |
+| **Application URL** | `http://localhost/claude_admin2/` |
 | **Database Host** | localhost |
 | **Database Name** | roadside_assistance |
 | **Database User** | root |

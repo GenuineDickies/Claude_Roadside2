@@ -129,7 +129,7 @@ try {
     $checkUser = $pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'")->fetchColumn();
     if ($checkUser == 0) {
         $stmt = $pdo->prepare("INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)");
-        $stmt->execute(['admin', password_hash('admin123', PASSWORD_DEFAULT), 'admin@roadside.com', 'admin']);
+        $stmt->execute(['admin', password_hash('pass', PASSWORD_DEFAULT), 'admin@roadside.com', 'admin']);
     }
 } catch (PDOException $e) {
     // User might already exist, continue anyway

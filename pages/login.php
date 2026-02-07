@@ -23,12 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <div class="login-container">
-    <div class="col-md-4">
-        <div class="login-card">
-            <div class="login-header">
-                <h2><i class="fas fa-tools"></i> Roadside Assistance</h2>
-                <p class="mb-0">Administrative Platform</p>
+    <div class="login-card">
+        <div class="login-header">
+            <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--navy-600),var(--navy-500));border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;color:#fff;">
+                <i class="fas fa-road"></i>
             </div>
+            <h2>RoadRunner</h2>
+            <p class="mb-0">Command Center Login</p>
+        </div>
             <div class="p-4">
                 <?php if (isset($error)): ?>
                     <div class="alert alert-danger"><?php echo $error; ?></div>
@@ -48,10 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="mt-3 text-center">
                     <small class="text-muted">
-                        Default credentials: admin / admin123
+                        Default credentials: admin / pass
                     </small>
                 </div>
             </div>
         </div>
     </div>
-</div>

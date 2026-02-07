@@ -31,13 +31,11 @@ A comprehensive web application for managing roadside assistance operations, bui
 
 ### 1. Clone/Download the Project
 ```bash
-# Navigate to your XAMPP htdocs directory
-cd c:\xampp\htdocs
+# Navigate to your web server directory
+cd /var/www/html
 
-# If you have git
-git clone [repository-url] B3
-
-# Or extract the downloaded files to the B3 directory
+# Clone the repository
+git clone [repository-url] claude_admin2
 ```
 
 ### 2. Start XAMPP Services
@@ -56,7 +54,7 @@ The application will automatically create the database and tables when you first
 
 ### 4. Access the Application
 1. Open your web browser
-2. Navigate to: `http://localhost/B3/`
+2. Navigate to: `http://localhost/claude_admin2/`
 3. You'll be redirected to the login page
 
 **Default Login Credentials:**
@@ -74,7 +72,7 @@ After logging in:
 ## Project Structure
 
 ```
-B3/
+claude_admin2/
 ├── assets/
 │   ├── css/
 │   │   └── style.css          # Custom styles
@@ -181,7 +179,7 @@ Modify `assets/css/style.css` to customize the appearance:
 
 2. **Page Not Loading**
    - Verify Apache service is running
-   - Check that the URL is correct: `http://localhost/B3/`
+   - Check that the URL is correct: `http://localhost/claude_admin2/`
 
 3. **Login Issues**
    - Use default credentials: admin/admin123

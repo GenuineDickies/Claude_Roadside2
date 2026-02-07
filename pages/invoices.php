@@ -100,20 +100,24 @@ if ($action === 'list') {
 }
 ?>
 
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1><i class="fas fa-file-invoice"></i> Invoices</h1>
-            <?php if ($action === 'list'): ?>
-                <a href="?page=service-requests&status=completed" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Create from Completed Request
-                </a>
-            <?php else: ?>
-                <a href="?page=invoices" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to List
-                </a>
-            <?php endif; ?>
+<div class="rr-page-header" style="margin: -28px -28px 24px -28px;">
+    <div class="header-left">
+        <i class="fas fa-file-invoice-dollar header-icon"></i>
+        <div>
+            <h1>Invoices</h1>
+            <div class="header-subtitle">Billing and payment tracking</div>
         </div>
+    </div>
+    <div class="header-actions">
+        <?php if ($action === 'list'): ?>
+            <a href="?page=service-requests&status=completed" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create from Completed Request
+            </a>
+        <?php else: ?>
+            <a href="?page=invoices" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -312,8 +316,8 @@ if ($action === 'list') {
             
             <!-- Invoice Items -->
             <div class="table-responsive mb-4">
-                <table class="table table-bordered">
-                    <thead class="table-light">
+                <table class="table">
+                    <thead>
                         <tr>
                             <th>Service</th>
                             <th>Description</th>
@@ -345,9 +349,9 @@ if ($action === 'list') {
                             <td><strong>Tax (<?php echo $invoice['tax_rate']; ?>%):</strong></td>
                             <td class="text-end"><?php echo format_currency($invoice['tax_amount']); ?></td>
                         </tr>
-                        <tr class="table-active">
+                        <tr style="border-top: 2px solid var(--navy-500);">
                             <td><strong>Total:</strong></td>
-                            <td class="text-end"><strong><?php echo format_currency($invoice['total_amount']); ?></strong></td>
+                            <td class="text-end"><strong style="color: var(--navy-300); font-size: 16px;"><?php echo format_currency($invoice['total_amount']); ?></strong></td>
                         </tr>
                     </table>
                 </div>

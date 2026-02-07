@@ -1,4 +1,4 @@
-# Copilot Instructions for RoadRunner B3 Project
+# Copilot Instructions for RoadRunner Admin Project
 
 ## ⚡ Token-Efficient Workflow
 1. **Read `.github/RULES.md` FIRST** — compact design rules (~150 lines, ~1K tokens)
@@ -11,8 +11,7 @@ RoadRunner Admin — PHP-based roadside assistance & mobile mechanic operations 
 ## Environment
 - **Stack:** PHP 8 + MySQL + Bootstrap 5.1.3 + React 18 (CDN, catalog only)
 - **Workspace:** `\\wsl.localhost\Ubuntu\var\www\html\claude_admin2`
-- **Production:** `/var/www/html/public/B3/`
-- **URL:** `http://localhost/B3/`
+- **URL:** `http://localhost/claude_admin2/`
 - **DB:** MySQL — root/pass — database: roadside_assistance
 
 ## File Locations
@@ -35,10 +34,8 @@ RoadRunner Admin — PHP-based roadside assistance & mobile mechanic operations 
 - **Fonts:** DM Sans (UI), JetBrains Mono (data values)
 - **Every page:** gradient header + navy border, scoped CSS prefixes
 
-## Deploy After Changes
-```powershell
-Copy-Item 'pages\file.php' -Destination '\\wsl.localhost\Ubuntu\var\www\html\public\B3\pages\file.php' -Force
-```
+## No Deploy Needed
+App runs directly from workspace — edits are live immediately.
 
 ## Key Rules
 - Use CSS variables, never hardcode colors
