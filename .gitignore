@@ -1,0 +1,35 @@
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE / Editor
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment & secrets — NEVER commit credentials
+.env
+.env.local
+.env.production
+config/database.local.php
+
+# PHP
+vendor/
+composer.lock
+
+# Logs
+*.log
+error_log
+
+# Temp files
+*.tmp
+*.bak
+*.orig
+
+# Node (if ever used)
+node_modules/
+
+# Build artifacts
+*.cache

@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoadRunner Service Catalog</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* ═══ CSS CUSTOM PROPERTIES ═══ */
+        :root {
+            /* Background Hierarchy */
+            --bg-primary: #0C0E12;
+            --bg-secondary: #12151B;
+            --bg-surface: #181C24;
+            --bg-surface-hover: #1E2330;
+            --bg-surface-active: #252A36;
+            --bg-input: #181C24;
+            
+            /* Borders */
+            --border-subtle: rgba(255,255,255,0.06);
+            --border-medium: rgba(255,255,255,0.10);
+            --border-strong: rgba(255,255,255,0.16);
+            
+            /* Text */
+            --text-primary: #E8ECF4;
+            --text-secondary: #8A92A6;
+            --text-tertiary: #5C6478;
+            --text-muted: #5C6478;
+            --text-inverse: #0C0E12;
+            
+            /* Brand Color: Navy Blue (for UI chrome - buttons, nav, links) */
+            --navy-700: #1E3A5F;
+            --navy-600: #234B78;
+            --navy-500: #2B5EA7;
+            --navy-400: #3B7DD8;
+            --navy-300: #5A9AE6;
+            --navy-glow: rgba(43,94,167,0.15);
+            
+            /* Signal Colors (for status meaning ONLY - not for buttons/UI chrome) */
+            --amber-500: #F59E0B;
+            --amber-400: #FBBF24;
+            --amber-glow: rgba(245,158,11,0.12);
+            
+            --color-success: #22c55e;
+            --green-500: #22c55e;
+            --green-glow: rgba(34,197,94,0.12);
+            
+            --color-error: #ef4444;
+            --red-500: #EF4444;
+            --red-glow: rgba(239,68,68,0.12);
+            
+            --color-info: #3b82f6;
+            --blue-500: #3B82F6;
+            --blue-glow: rgba(59,130,246,0.12);
+            
+            --purple-500: #A855F7;
+            --purple-glow: rgba(168,85,247,0.12);
+            
+            --color-warning: #F59E0B;
+            
+            /* Category Colors (status signaling) */
+            --cat-diagnostic: #3b82f6;
+            --cat-repair: #ef4444;
+            --cat-maintenance: #22c55e;
+            --cat-roadside: #f59e0b;
+            --cat-towing: #8b5cf6;
+            --cat-battery: #f97316;
+            --cat-tire: #06b6d4;
+            --cat-lockout: #ec4899;
+            --cat-fuel: #eab308;
+            --cat-jump: #f97316;
+            --cat-other: #6b7280;
+            
+            /* Typography */
+            --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+            
+            /* Spacing (updated to match design system) */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 20px;
+            --spacing-2xl: 24px;
+            --spacing-3xl: 28px;
+            
+            /* Border Radius (updated to match design system) */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* ═══ RESET & BASE ═══ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* ═══ HEADER ═══ */
+        .app-header {
+            background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-secondary) 100%);
+            border-bottom: 2px solid var(--navy-500);
+            padding: var(--spacing-xl) var(--spacing-2xl);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .header-icon {
+            font-size: 26px;
+        }
+        
+        .header-title-group h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--navy-300);
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            margin: 0;
+        }
+        
+        /* ═══ TAB NAVIGATION ═══ */
+        .tab-nav {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 var(--spacing-3xl);
+        }
+        
+        .tab-button {
+            padding: 14px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color var(--transition-fast);
+        }
+        
+        .tab-button:hover {
+            color: var(--text-secondary);
+        }
+        
+        .tab-button.active {
+            color: var(--navy-400);
+            border-bottom-color: var(--navy-400);
+        }
+        
+        .tab-icon {
+            font-size: 16px;
+        }
+        
+        .nav-badge {
+            background: var(--color-error);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+        
+        /* ═══ STATS GRID ═══ */
+        .stats-grid {
+            display: flex;
+            gap: var(--spacing-md);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            flex: 1 1 140px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg) 18px;
+        }
+        
+        .stat-card.accent-success {
+            border-left: 3px solid var(--color-success);
+        }
+        
+        .stat-card.accent-warning {
+            border-left: 3px solid var(--amber-500);
+        }
+        
+        .stat-card.accent-info {
+            border-left: 3px solid var(--color-info);
+        }
+        
+        .stat-card.accent-purple {
+            border-left: 3px solid var(--purple-500);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Oswald', var(--font-sans);
+        }
+        
+        .stat-value.color-success { color: var(--green-500); }
+        .stat-value.color-warning { color: var(--amber-500); }
+        .stat-value.color-info { color: var(--blue-500); }
+        .stat-value.color-purple { color: var(--purple-500); }
+        
+        /* ═══ PAGE CONTENT ═══ */
+        .page-content {
+            padding: 0 var(--spacing-2xl) var(--spacing-2xl);
+        }
+        
+        /* ═══ TOOLBAR ═══ */
+        .content-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            margin-top: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-spacer {
+            flex: 1;
+        }
+        
+        /* ═══ FORM INPUTS ═══ */
+        .form-input,
+        .form-select {
+            width: 100%;
+            max-width: 260px;
+            padding: 10px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-family: var(--font-mono);
+            outline: none;
+        }
+        
+        .form-select {
+            max-width: 180px;
+            appearance: none;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--navy-400);
+            box-shadow: 0 0 0 3px var(--navy-glow);
+        }
+        
+        /* ═══ BUTTONS ═══ */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+            transition: all var(--transition-fast);
+        }
+        
+        .btn-primary {
+            background: var(--navy-500);
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            background: var(--navy-400);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-strong);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+        
+        .btn-danger {
+            background: var(--red-glow);
+            color: var(--red-500);
+            border: 1px solid var(--red-500);
+        }
+        
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.25);
+        }
+        
+        /* ═══ TABLES ═══ */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .data-table thead tr {
+            border-bottom: 2px solid var(--border-medium);
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 12px 14px;
+            color: var(--text-tertiary);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .data-table tbody tr {
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background var(--transition-fast);
+        }
+        
+        .data-table tbody tr:hover {
+            background: var(--bg-surface);
+        }
+        
+        .data-table td {
+            padding: 12px 14px;
+        }
+        
+        .table-code {
+            font-family: var(--font-mono);
+            color: var(--navy-300);
+            font-size: 13px;
+        }
+        
+        .table-name {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .table-description {
+            color: var(--text-tertiary);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .table-money {
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+        
+        .table-money.color-success { color: var(--green-500); }
+        .table-money.color-warning { color: var(--amber-500); }
+        .table-money.color-error { color: var(--red-500); }
+        .table-money.color-muted { color: var(--text-tertiary); }
+        
+        /* ═══ BADGES ═══ */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            font-weight: 500;
+        }
+        
+        .badge-category {
+            border: 1px solid;
+        }
+        
+        /* ═══ STATUS CHIPS ═══ */
+        .status-chip {
+            padding: 4px 12px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            transition: all var(--transition-fast);
+        }
+        
+        .status-chip.active {
+            background: var(--green-glow);
+            color: var(--green-500);
+        }
+        
+        .status-chip.inactive {
+            background: var(--red-glow);
+            color: var(--red-500);
+        }
+        
+        /* ═══ MODAL ═══ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 560px;
+            max-height: 85vh;
+            overflow: auto;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-lg) var(--spacing-xl);
+            border-bottom: 1px solid var(--border-medium);
+        }
+        
+        .modal-title {
+            margin: 0;
+            font-family: var(--font-sans);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .modal-body {
+            padding: var(--spacing-xl);
+        }
+        
+        .form-group {
+            margin-bottom: 14px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        
+        .form-group .form-input,
+        .form-group .form-select,
+        .form-group .form-textarea {
+            max-width: 100%;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-family: var(--font-mono);
+            min-height: 60px;
+            resize: vertical;
+            outline: none;
+        }
+        
+        .form-textarea:focus {
+            border-color: var(--navy-400);
+            box-shadow: 0 0 0 3px var(--navy-glow);
+        }
+        
+        .form-checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 14px;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            accent-color: var(--navy-500);
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: var(--spacing-xl);
+        }
+        
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        /* ═══ EMPTY STATE ═══ */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+            font-size: 15px;
+        }
+        
+        /* ═══ DISPATCH PLACEHOLDER ═══ */
+        .dispatch-placeholder {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .dispatch-placeholder h3 {
+            margin: 0 0 var(--spacing-lg);
+            font-size: 18px;
+            color: var(--navy-300);
+        }
+        
+        .dispatch-placeholder p {
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0 0 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                flex-direction: column;
+            }
+            
+            .content-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .form-input,
+            .form-select {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState } = React;
+
+        // ── DATA STORE ──────────────────────────────────────────────────
+        const INITIAL_SERVICES = [
+          { service_id: 1, service_code: "RSA-001", service_name: "Jump Start", service_category: "jump_start", description: "Battery jump start service", requires_parts: true, mobile_capable: true, shop_only: false, is_active: true },
+          { service_id: 2, service_code: "RSA-002", service_name: "Flat Tire Change", service_category: "tire", description: "Spare tire mount & inflation", requires_parts: false, mobile_capable: true, shop_only: false, is_active: true },
+          { service_id: 3, service_code: "RSA-003", service_name: "Fuel Delivery", service_category: "fuel_delivery", description: "Emergency fuel delivery (up to 2 gal)", requires_parts: true, mobile_capable: true, shop_only: false, is_active: true },
+          { service_id: 4, service_code: "RSA-004", service_name: "Vehicle Lockout", service_category: "lockout", description: "Non-destructive vehicle entry", requires_parts: false, mobile_capable: true, shop_only: false, is_active: true },
+          { service_id: 5, service_code: "MEC-001", service_name: "Brake Pad Replacement", service_category: "repair", description: "Front or rear brake pad replacement", requires_parts: true, mobile_capable: true, shop_only: false, is_active: true },
+          { service_id: 6, service_code: "MEC-002", service_name: "Oil Change", service_category: "maintenance", description: "Full synthetic oil change with filter", requires_parts: true, mobile_capable: true, shop_only: false, is_active: true },
+          { service_id: 7, service_code: "MEC-003", service_name: "Battery Replacement", service_category: "battery", description: "Battery test, removal, and install", requires_parts: true, mobile_capable: true, shop_only: false, is_active: false },
+          { service_id: 8, service_code: "DIA-001", service_name: "OBD-II Diagnostic Scan", service_category: "diagnostic", description: "Full vehicle diagnostic scan & report", requires_parts: false, mobile_capable: true, shop_only: false, is_active: true },
+          { service_id: 9, service_code: "TOW-001", service_name: "Local Tow (0-10 mi)", service_category: "towing", description: "Flatbed tow within 10 miles", requires_parts: false, mobile_capable: false, shop_only: false, is_active: true },
+        ];
+
+        const INITIAL_LABOR = [
+          { labor_id: 1, service_id: 1, service_location: "mobile_onsite", standard_hours: 0.5, labor_rate_per_hour: 95.00, flat_rate_price: 75.00, emergency_surcharge: 35.00, after_hours_surcharge: 50.00 },
+          { labor_id: 2, service_id: 2, service_location: "mobile_onsite", standard_hours: 0.75, labor_rate_per_hour: 95.00, flat_rate_price: 85.00, emergency_surcharge: 35.00, after_hours_surcharge: 50.00 },
+          { labor_id: 3, service_id: 3, service_location: "mobile_onsite", standard_hours: 0.5, labor_rate_per_hour: 95.00, flat_rate_price: 65.00, emergency_surcharge: 25.00, after_hours_surcharge: 40.00 },
+          { labor_id: 4, service_id: 4, service_location: "mobile_onsite", standard_hours: 0.5, labor_rate_per_hour: 95.00, flat_rate_price: 70.00, emergency_surcharge: 30.00, after_hours_surcharge: 45.00 },
+          { labor_id: 5, service_id: 5, service_location: "both", standard_hours: 1.5, labor_rate_per_hour: 110.00, flat_rate_price: 165.00, emergency_surcharge: 50.00, after_hours_surcharge: 65.00 },
+          { labor_id: 6, service_id: 6, service_location: "both", standard_hours: 0.75, labor_rate_per_hour: 95.00, flat_rate_price: 89.00, emergency_surcharge: 0, after_hours_surcharge: 40.00 },
+          { labor_id: 7, service_id: 8, service_location: "mobile_onsite", standard_hours: 0.5, labor_rate_per_hour: 95.00, flat_rate_price: 49.00, emergency_surcharge: 20.00, after_hours_surcharge: 35.00 },
+          { labor_id: 8, service_id: 9, service_location: "mobile_onsite", standard_hours: 1.0, labor_rate_per_hour: 0, flat_rate_price: 125.00, emergency_surcharge: 50.00, after_hours_surcharge: 75.00 },
+        ];
+
+        const CATEGORIES = ["diagnostic","repair","maintenance","roadside_emergency","towing","battery","tire","lockout","fuel_delivery","jump_start","other"];
+        const LOCATIONS = ["mobile_onsite", "shop", "both"];
+
+        // ── UTILITY FUNCTIONS ───────────────────────────────────────────
+        const formatCategoryLabel = (cat) => cat.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+        
+        const formatLocationLabel = (loc) => ({
+          mobile_onsite: "Mobile / On-Site",
+          shop: "Shop Only",
+          both: "Both"
+        }[loc] || loc);
+        
+        const getCategoryColor = (cat) => ({
+          diagnostic: "#3b82f6",
+          repair: "#ef4444",
+          maintenance: "#22c55e",
+          roadside_emergency: "#f59e0b",
+          towing: "#8b5cf6",
+          battery: "#f97316",
+          tire: "#06b6d4",
+          lockout: "#ec4899",
+          fuel_delivery: "#eab308",
+          jump_start: "#f97316",
+          other: "#6b7280"
+        }[cat] || "#6b7280");
+
+        // ── COMPONENTS ──────────────────────────────────────────────────
+        const Modal = ({ title, onClose, children }) => (
+          <div className="modal-overlay" onClick={onClose}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3 className="modal-title">{title}</h3>
+                <button className="modal-close" onClick={onClose}>×</button>
+              </div>
+              <div className="modal-body">{children}</div>
+            </div>
+          </div>
+        );
+
+        const FormField = ({ label, children }) => (
+          <div className="form-group">
+            <label className="form-label">{label}</label>
+            {children}
+          </div>
+        );
+
+        const CheckboxField = ({ label, checked, onChange }) => (
+          <label className="checkbox-label">
+            <input type="checkbox" checked={checked} onChange={onChange} />
+            {label}
+          </label>
+        );
+
+        const CategoryBadge = ({ category }) => {
+          const color = getCategoryColor(category);
+          return (
+            <span className="badge badge-category" style={{
+              background: color + "22",
+              color: color,
+              borderColor: color + "44"
+            }}>
+              {formatCategoryLabel(category)}
+            </span>
+          );
+        };
+
+        // ── MAIN APP ────────────────────────────────────────────────────
+        function App() {
+          const [services, setServices] = useState(INITIAL_SERVICES);
+          const [labor, setLabor] = useState(INITIAL_LABOR);
+          const [activeTab, setActiveTab] = useState("dispatch");
+          const [search, setSearch] = useState("");
+          const [filterCategory, setFilterCategory] = useState("all");
+          const [filterActive, setFilterActive] = useState("all");
+          const [modal, setModal] = useState(null);
+          const [deleteConfirm, setDeleteConfirm] = useState(null);
+          const [form, setForm] = useState({});
+
+          // Default forms
+          const emptyService = { service_code:"", service_name:"", service_category:"diagnostic", description:"", requires_parts:false, mobile_capable:true, shop_only:false, is_active:true };
+          const emptyLabor = { service_id:"", service_location:"mobile_onsite", standard_hours:"", labor_rate_per_hour:"", flat_rate_price:"", emergency_surcharge:"", after_hours_surcharge:"" };
+
+          const handleOpenModal = (type, mode, data) => {
+            setForm(data || (type==="service"?emptyService:emptyLabor));
+            setModal({type,mode});
+          };
+          
+          const handleUpdateForm = (key, value) => setForm(f => ({...f, [key]:value}));
+
+          const handleSaveService = () => {
+            if (!form.service_code || !form.service_name) return;
+            if (modal.mode==="add") {
+              setServices(s=>[...s,{...form,service_id:Math.max(0,...s.map(x=>x.service_id))+1}]);
+            } else {
+              setServices(s=>s.map(svc=>svc.service_id===form.service_id?form:svc));
+            }
+            setModal(null);
+          };
+
+          const handleSaveLabor = () => {
+            if (!form.service_id) return;
+            const parsed = {
+              ...form,
+              service_id:parseInt(form.service_id),
+              standard_hours:parseFloat(form.standard_hours)||0,
+              labor_rate_per_hour:parseFloat(form.labor_rate_per_hour)||0,
+              flat_rate_price:parseFloat(form.flat_rate_price)||0,
+              emergency_surcharge:parseFloat(form.emergency_surcharge)||0,
+              after_hours_surcharge:parseFloat(form.after_hours_surcharge)||0
+            };
+            if (modal.mode==="add") {
+              setLabor(l=>[...l,{...parsed,labor_id:Math.max(0,...l.map(x=>x.labor_id))+1}]);
+            } else {
+              setLabor(l=>l.map(lr=>lr.labor_id===form.labor_id?parsed:lr));
+            }
+            setModal(null);
+          };
+
+          const handleDelete = () => {
+            if (!deleteConfirm) return;
+            if (deleteConfirm.type==="service") {
+              setServices(s=>s.filter(x=>x.service_id!==deleteConfirm.id));
+              setLabor(l=>l.filter(x=>x.service_id!==deleteConfirm.id));
+            } else {
+              setLabor(l=>l.filter(x=>x.labor_id!==deleteConfirm.id));
+            }
+            setDeleteConfirm(null);
+          };
+
+          const handleToggleActive = (id) => setServices(s=>s.map(x=>x.service_id===id?{...x,is_active:!x.is_active}:x));
+
+          // Filtering
+          const filteredServices = services.filter(s => {
+            if (search && !s.service_name.toLowerCase().includes(search.toLowerCase()) && !s.service_code.toLowerCase().includes(search.toLowerCase())) return false;
+            if (filterCategory!=="all" && s.service_category!==filterCategory) return false;
+            if (filterActive==="active" && !s.is_active) return false;
+            if (filterActive==="inactive" && s.is_active) return false;
+            return true;
+          });
+
+          const filteredLabor = labor.filter(l => {
+            const svc = services.find(s=>s.service_id===l.service_id);
+            return !(search && svc && !svc.service_name.toLowerCase().includes(search.toLowerCase()));
+          });
+
+          const getServiceName = (sid) => services.find(s=>s.service_id===sid)?.service_name || `ID: ${sid}`;
+          const activeServices = services.filter(s => s.is_active);
+          const totalActive = activeServices.length;
+          const avgFlatRate = labor.length ? (labor.reduce((a,l)=>a+(l.flat_rate_price||0),0)/labor.length).toFixed(2) : "0.00";
+          const mobileCount = services.filter(s=>s.mobile_capable&&s.is_active).length;
+
+          return (
+            <div style={{ fontFamily:"var(--font-sans)", background:"var(--bg-primary)", color:"var(--text-primary)", minHeight:"100vh" }}>
+              {/* HEADER */}
+              <div className="app-header">
+                <div className="header-content">
+                  <span className="header-icon">🔧</span>
+                  <div className="header-title-group">
+                    <h1>Service Catalog</h1>
+                    <p className="header-subtitle">Roadside Assistance & Mobile Mechanic — Admin Dashboard</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* TAB NAVIGATION */}
+              <div className="tab-nav">
+                {[
+                  {id:"dispatch", icon:"📞", label:"Dispatch"},
+                  {id:"services", icon:"⚙", label:"Services"},
+                  {id:"labor", icon:"$", label:"Labor Rates"}
+                ].map(tab => (
+                  <button key={tab.id} className={`tab-button ${activeTab===tab.id?"active":""}`}
+                    onClick={() => { setActiveTab(tab.id); setSearch(""); setFilterCategory("all"); setFilterActive("all"); }}>
+                    <span className="tab-icon">{tab.icon}</span>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* STATS (services/labor only) */}
+              {activeTab!=="dispatch" && (
+                <div className="stats-grid">
+                  <div className="stat-card accent-success">
+                    <div className="stat-label">Active Services</div>
+                    <div className="stat-value color-success">{totalActive}</div>
+                  </div>
+                  <div className="stat-card accent-warning">
+                    <div className="stat-label">Avg Flat Rate</div>
+                    <div className="stat-value color-warning">${avgFlatRate}</div>
+                  </div>
+                  <div className="stat-card accent-info">
+                    <div className="stat-label">Mobile-Ready</div>
+                    <div className="stat-value color-info">{mobileCount}</div>
+                  </div>
+                  <div className="stat-card accent-purple">
+                    <div className="stat-label">Labor Entries</div>
+                    <div className="stat-value color-purple">{labor.length}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* CONTENT */}
+              <div className="page-content">
+                {/* DISPATCH TAB */}
+                {activeTab === "dispatch" && (
+                  <div className="dispatch-placeholder">
+                    <h3>👤 DISPATCH INTERFACE</h3>
+                    <p>Full dispatch form with customer info, vehicle details, service selection, technician assignment, and real-time pricing calculator.</p>
+                    <p style={{fontSize:14, color:"var(--text-tertiary)"}}>Click on "Services" or "Labor Rates" tabs to see the catalog management interface.</p>
+                  </div>
+                )}
+
+                {/* SERVICES TAB */}
+                {activeTab === "services" && (
+                  <>
+                    <div className="content-toolbar">
+                      <input className="form-input" placeholder="Search services..." value={search} onChange={e=>setSearch(e.target.value)} />
+                      <select className="form-select" value={filterCategory} onChange={e=>setFilterCategory(e.target.value)}>
+                        <option value="all">All Categories</option>
+                        {CATEGORIES.map(c=><option key={c} value={c}>{formatCategoryLabel(c)}</option>)}
+                      </select>
+                      <select className="form-select" style={{maxWidth:140}} value={filterActive} onChange={e=>setFilterActive(e.target.value)}>
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                      <div className="toolbar-spacer" />
+                      <button className="btn btn-primary" onClick={()=>handleOpenModal("service","add",null)}>+ Add Service</button>
+                    </div>
+                    <div style={{overflowX:"auto"}}>
+                      <table className="data-table">
+                        <thead><tr>
+                          <th>Code</th>
+                          <th>Service Name</th>
+                          <th>Category</th>
+                          <th>Description</th>
+                          <th>Parts</th>
+                          <th>Mobile</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr></thead>
+                        <tbody>
+                          {filteredServices.length===0 ? (
+                            <tr><td colSpan={8} className="empty-state">No services found</td></tr>
+                          ) : filteredServices.map(s => (
+                            <tr key={s.service_id}>
+                              <td className="table-code">{s.service_code}</td>
+                              <td className="table-name">{s.service_name}</td>
+                              <td><CategoryBadge category={s.service_category} /></td>
+                              <td className="table-description">{s.description}</td>
+                              <td style={{textAlign:"center", fontSize:15}}>{s.requires_parts?"✓":"—"}</td>
+                              <td style={{textAlign:"center", fontSize:15}}>{s.mobile_capable?"✓":"—"}</td>
+                              <td>
+                                <button className={`status-chip ${s.is_active?"active":"inactive"}`} onClick={()=>handleToggleActive(s.service_id)}>
+                                  {s.is_active?"ACTIVE":"INACTIVE"}
+                                </button>
+                              </td>
+                              <td>
+                                <div style={{display:"flex", gap:6}}>
+                                  <button className="btn btn-secondary" style={{padding:"6px 12px", fontSize:13}} onClick={()=>handleOpenModal("service","edit",s)}>Edit</button>
+                                  <button className="btn btn-danger" style={{padding:"6px 12px", fontSize:13}} onClick={()=>setDeleteConfirm({type:"service",id:s.service_id,name:s.service_name})}>Del</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
+                {/* LABOR TAB */}
+                {activeTab === "labor" && (
+                  <>
+                    <div className="content-toolbar">
+                      <input className="form-input" placeholder="Search labor rates..." value={search} onChange={e=>setSearch(e.target.value)} />
+                      <div className="toolbar-spacer" />
+                      <button className="btn btn-primary" onClick={()=>handleOpenModal("labor","add",null)}>+ Add Labor Rate</button>
+                    </div>
+                    <div style={{overflowX:"auto"}}>
+                      <table className="data-table">
+                        <thead><tr>
+                          <th>Service</th>
+                          <th>Location</th>
+                          <th>Std Hours</th>
+                          <th>Rate/Hr</th>
+                          <th>Flat Rate</th>
+                          <th>Emergency +</th>
+                          <th>After Hrs +</th>
+                          <th>Actions</th>
+                        </tr></thead>
+                        <tbody>
+                          {filteredLabor.length===0 ? (
+                            <tr><td colSpan={8} className="empty-state">No labor rates found</td></tr>
+                          ) : filteredLabor.map(l => (
+                            <tr key={l.labor_id}>
+                              <td className="table-name">{getServiceName(l.service_id)}</td>
+                              <td><span className="badge" style={{background:"var(--blue-glow)", color:"var(--blue-500)", borderColor:"var(--blue-500)", border:"1px solid"}}>{formatLocationLabel(l.service_location)}</span></td>
+                              <td style={{fontFamily:"var(--font-mono)", color:"var(--text-secondary)"}}>{l.standard_hours}h</td>
+                              <td className="table-money color-success">${l.labor_rate_per_hour.toFixed(2)}</td>
+                              <td className="table-money color-warning">${l.flat_rate_price.toFixed(2)}</td>
+                              <td className={`table-money ${l.emergency_surcharge?"color-error":"color-muted"}`}>{l.emergency_surcharge?`+$${l.emergency_surcharge.toFixed(2)}`:"—"}</td>
+                              <td style={{fontFamily:"var(--font-mono)", color:l.after_hours_surcharge?"var(--purple-500)":"var(--text-tertiary)"}}>{l.after_hours_surcharge?`+$${l.after_hours_surcharge.toFixed(2)}`:"—"}</td>
+                              <td>
+                                <div style={{display:"flex", gap:6}}>
+                                  <button className="btn btn-secondary" style={{padding:"6px 12px", fontSize:13}} onClick={()=>handleOpenModal("labor","edit",l)}>Edit</button>
+                                  <button className="btn btn-danger" style={{padding:"6px 12px", fontSize:13}} onClick={()=>setDeleteConfirm({type:"labor",id:l.labor_id,name:getServiceName(l.service_id)})}>Del</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* SERVICE MODAL */}
+              {modal && modal.type==="service" && (
+                <Modal title={`${modal.mode==="add"?"ADD":"EDIT"} SERVICE`} onClose={()=>setModal(null)}>
+                  <FormField label="Service Code">
+                    <input className="form-input" value={form.service_code} onChange={e=>handleUpdateForm("service_code",e.target.value)} placeholder="e.g. RSA-005" />
+                  </FormField>
+                  <FormField label="Service Name">
+                    <input className="form-input" value={form.service_name} onChange={e=>handleUpdateForm("service_name",e.target.value)} placeholder="e.g. Alternator Replacement" />
+                  </FormField>
+                  <FormField label="Category">
+                    <select className="form-select" value={form.service_category} onChange={e=>handleUpdateForm("service_category",e.target.value)}>
+                      {CATEGORIES.map(c=><option key={c} value={c}>{formatCategoryLabel(c)}</option>)}
+                    </select>
+                  </FormField>
+                  <FormField label="Description">
+                    <textarea className="form-textarea" value={form.description} onChange={e=>handleUpdateForm("description",e.target.value)} />
+                  </FormField>
+                  <div className="form-checkbox-group">
+                    <CheckboxField label="Requires Parts" checked={form.requires_parts} onChange={()=>handleUpdateForm("requires_parts",!form.requires_parts)} />
+                    <CheckboxField label="Mobile Capable" checked={form.mobile_capable} onChange={()=>handleUpdateForm("mobile_capable",!form.mobile_capable)} />
+                    <CheckboxField label="Shop Only" checked={form.shop_only} onChange={()=>handleUpdateForm("shop_only",!form.shop_only)} />
+                  </div>
+                  <CheckboxField label="Active" checked={form.is_active} onChange={()=>handleUpdateForm("is_active",!form.is_active)} />
+                  <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={()=>setModal(null)}>Cancel</button>
+                    <button className="btn btn-primary" onClick={handleSaveService}>{modal.mode==="add"?"Add Service":"Save Changes"}</button>
+                  </div>
+                </Modal>
+              )}
+
+              {/* LABOR MODAL */}
+              {modal && modal.type==="labor" && (
+                <Modal title={`${modal.mode==="add"?"ADD":"EDIT"} LABOR RATE`} onClose={()=>setModal(null)}>
+                  <FormField label="Service">
+                    <select className="form-select" value={form.service_id} onChange={e=>handleUpdateForm("service_id",e.target.value)}>
+                      <option value="">— Select Service —</option>
+                      {services.filter(s=>s.is_active).map(s=><option key={s.service_id} value={s.service_id}>{s.service_code} — {s.service_name}</option>)}
+                    </select>
+                  </FormField>
+                  <FormField label="Service Location">
+                    <select className="form-select" value={form.service_location} onChange={e=>handleUpdateForm("service_location",e.target.value)}>
+                      {LOCATIONS.map(l=><option key={l} value={l}>{formatLocationLabel(l)}</option>)}
+                    </select>
+                  </FormField>
+                  <div className="form-grid-2">
+                    <FormField label="Standard Hours">
+                      <input className="form-input" type="number" step="0.25" value={form.standard_hours} onChange={e=>handleUpdateForm("standard_hours",e.target.value)} />
+                    </FormField>
+                    <FormField label="Rate / Hour ($)">
+                      <input className="form-input" type="number" step="5" value={form.labor_rate_per_hour} onChange={e=>handleUpdateForm("labor_rate_per_hour",e.target.value)} />
+                    </FormField>
+                    <FormField label="Flat Rate ($)">
+                      <input className="form-input" type="number" step="5" value={form.flat_rate_price} onChange={e=>handleUpdateForm("flat_rate_price",e.target.value)} />
+                    </FormField>
+                    <FormField label="Emergency Surcharge ($)">
+                      <input className="form-input" type="number" step="5" value={form.emergency_surcharge} onChange={e=>handleUpdateForm("emergency_surcharge",e.target.value)} />
+                    </FormField>
+                    <FormField label="After Hours Surcharge ($)">
+                      <input className="form-input" type="number" step="5" value={form.after_hours_surcharge} onChange={e=>handleUpdateForm("after_hours_surcharge",e.target.value)} />
+                    </FormField>
+                  </div>
+                  <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={()=>setModal(null)}>Cancel</button>
+                    <button className="btn btn-primary" onClick={handleSaveLabor}>{modal.mode==="add"?"Add Rate":"Save Changes"}</button>
+                  </div>
+                </Modal>
+              )}
+
+              {/* DELETE CONFIRMATION */}
+              {deleteConfirm && (
+                <Modal title="CONFIRM DELETE" onClose={()=>setDeleteConfirm(null)}>
+                  <p style={{color:"var(--text-secondary)", marginBottom:6}}>Are you sure you want to delete <strong style={{color:"var(--color-error)"}}>{deleteConfirm.name}</strong>?</p>
+                  {deleteConfirm.type==="service" && <p style={{color:"var(--text-muted)", fontSize:12}}>This will also remove any associated labor rates.</p>}
+                  <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={()=>setDeleteConfirm(null)}>Cancel</button>
+                    <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                  </div>
+                </Modal>
+              )}
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

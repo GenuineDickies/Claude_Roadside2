@@ -1,0 +1,138 @@
+<?php
+// Database configuration — loads credentials from .env file
+// NEVER commit real credentials. Copy .env.example to .env and fill in values.
+
+$envFile = __DIR__ . '/../.env';
+if (!file_exists($envFile)) {
+    die("Missing .env file. Copy .env.example to .env and set your database credentials.");
+}
+
+$env = parse_ini_file($envFile);
+if ($env === false) {
+    die("Failed to parse .env file.");
+}
+
+define('DB_HOST', $env['DB_HOST'] ?? 'localhost');
+define('DB_USER', $env['DB_USER'] ?? '');
+define('DB_PASS', $env['DB_PASS'] ?? '');
+define('DB_NAME', $env['DB_NAME'] ?? 'roadside_assistance');
+
+// Create connection to MySQL server first (without specifying database)
+try {
+    $pdo = new PDO("mysql:host=" . DB_HOST, DB_USER, DB_PASS);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+
+// Create database if it doesn't exist
+$pdo->exec("CREATE DATABASE IF NOT EXISTS " . DB_NAME);
+$pdo->exec("USE " . DB_NAME);
+
+// Disable foreign key checks
+$pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+$pdo->exec("SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO'");
+
+// Create tables in order (completely clean, no constraints initially)
+$tables = [
+    "CREATE TABLE IF NOT EXISTS users (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        username VARCHAR(50) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        email VARCHAR(100) NOT NULL,
+        role ENUM('admin', 'dispatcher', 'manager') NOT NULL DEFAULT 'dispatcher',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY username (username)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    
+    "CREATE TABLE IF NOT EXISTS customers (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        first_name VARCHAR(50) NOT NULL,
+        last_name VARCHAR(50) NOT NULL,
+        phone VARCHAR(20) NOT NULL,
+        email VARCHAR(100) DEFAULT NULL,
+        address TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    
+    "CREATE TABLE IF NOT EXISTS technicians (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        first_name VARCHAR(50) NOT NULL,
+        last_name VARCHAR(50) NOT NULL,
+        phone VARCHAR(20) NOT NULL,
+        email VARCHAR(100) DEFAULT NULL,
+        specialization VARCHAR(100) DEFAULT NULL,
+        status ENUM('available', 'busy', 'offline') NOT NULL DEFAULT 'available',
+        hourly_rate DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    
+    "CREATE TABLE IF NOT EXISTS service_requests (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        customer_id INT(11) NOT NULL,
+        technician_id INT(11) DEFAULT NULL,
+        service_type ENUM('battery_jump', 'tire_change', 'lockout', 'towing', 'fuel_delivery', 'other') NOT NULL,
+        description TEXT,
+        location TEXT NOT NULL,
+        status ENUM('pending', 'assigned', 'in_progress', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+        priority ENUM('low', 'medium', 'high', 'urgent') NOT NULL DEFAULT 'medium',
+        estimated_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        actual_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP NULL DEFAULT NULL,
+        PRIMARY KEY (id),
+        KEY idx_customer_id (customer_id),
+        KEY idx_technician_id (technician_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    
+    "CREATE TABLE IF NOT EXISTS invoices (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        service_request_id INT(11) NOT NULL,
+        customer_id INT(11) NOT NULL,
+        technician_id INT(11) NOT NULL,
+        invoice_number VARCHAR(20) NOT NULL,
+        subtotal DECIMAL(10,2) NOT NULL,
+        tax_rate DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+        tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        total_amount DECIMAL(10,2) NOT NULL,
+        status ENUM('draft', 'sent', 'paid', 'overdue') NOT NULL DEFAULT 'draft',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        due_date DATE NOT NULL,
+        paid_at TIMESTAMP NULL DEFAULT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY invoice_number (invoice_number),
+        KEY idx_service_request_id (service_request_id),
+        KEY idx_customer_id (customer_id),
+        KEY idx_technician_id (technician_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+];
+
+// Create all tables
+foreach ($tables as $table) {
+    try {
+        $pdo->exec($table);
+    } catch (PDOException $e) {
+        // Table might already exist, continue
+        continue;
+    }
+}
+
+// Re-enable foreign key checks
+$pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+
+// Insert default admin user if not exists
+try {
+    $checkUser = $pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'")->fetchColumn();
+    if ($checkUser == 0) {
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)");
+        $stmt->execute(['admin', password_hash('admin123', PASSWORD_DEFAULT), 'admin@roadside.com', 'admin']);
+    }
+} catch (PDOException $e) {
+    // User might already exist, continue anyway
+    error_log("Note: Default admin user might already exist: " . $e->getMessage());
+}
+?>

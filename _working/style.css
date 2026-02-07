@@ -1,0 +1,534 @@
+/* RoadRunner Admin Platform - Bootstrap Override */
+
+/* ============================================
+   RoadRunner Design System Variables
+   ============================================ */
+:root {
+    /* Navy Brand (UI Chrome Only) */
+    --navy-700: #1E3A5F;
+    --navy-600: #234574;
+    --navy-500: #2B5EA7;
+    --navy-400: #3B7DD8;
+    --navy-300: #5A9AE6;
+    --navy-glow: rgba(43, 94, 167, 0.25);
+    
+    /* Signal Colors (Status Only) */
+    --amber-500: #F59E0B;
+    --amber-400: #FBBF24;
+    --amber-glow: rgba(245, 158, 11, 0.25);
+    --green-500: #22C55E;
+    --green-glow: rgba(34, 197, 94, 0.25);
+    --red-500: #EF4444;
+    --red-glow: rgba(239, 68, 68, 0.25);
+    --blue-500: #3B82F6;
+    --blue-glow: rgba(59, 130, 246, 0.25);
+    --purple-500: #A855F7;
+    --purple-glow: rgba(168, 85, 247, 0.25);
+    
+    /* Backgrounds */
+    --bg-primary: #0C0E12;
+    --bg-secondary: #12151B;
+    --bg-surface: #181C24;
+    --bg-surface-hover: #1E2330;
+    --bg-surface-active: #252A36;
+    
+    /* Borders */
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-medium: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    
+    /* Text */
+    --text-primary: #E8ECF4;
+    --text-secondary: #8A92A6;
+    --text-tertiary: #5C6478;
+    --text-inverse: #0C0E12;
+    
+    /* Spacing & Sizing */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --transition-fast: 150ms ease;
+    --transition-smooth: 280ms ease;
+}
+
+/* ============================================
+   Bootstrap Color Overrides
+   ============================================ */
+
+/* Override Bootstrap primary with navy brand */
+.bg-primary, .btn-primary {
+    background-color: var(--navy-500) !important;
+    border-color: var(--navy-500) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--navy-400) !important;
+    border-color: var(--navy-400) !important;
+}
+
+.btn-primary:focus {
+    box-shadow: 0 0 0 0.25rem var(--navy-glow) !important;
+}
+
+/* Override Bootstrap warning with amber signal */
+.bg-warning {
+    background-color: var(--amber-500) !important;
+    border-color: var(--amber-500) !important;
+}
+
+/* Override Bootstrap success with green signal */
+.bg-success {
+    background-color: var(--green-500) !important;
+    border-color: var(--green-500) !important;
+}
+
+/* Override Bootstrap info with blue signal */
+.bg-info {
+    background-color: var(--blue-500) !important;
+    border-color: var(--blue-500) !important;
+}
+
+/* Override Bootstrap danger with red signal */
+.bg-danger, .btn-danger {
+    background-color: var(--red-500) !important;
+    border-color: var(--red-500) !important;
+}
+
+/* ============================================
+   Dark Theme Base
+   ============================================ */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+.navbar-dark {
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-medium);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    color: var(--navy-300) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: var(--navy-300);
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+.card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+}
+
+.stat-card {
+    transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+    border: 1px solid var(--border-medium);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.9;
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+.table {
+    color: var(--text-primary);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-medium);
+}
+
+.table td {
+    border-color: var(--border-subtle);
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--bg-surface-hover);
+}
+
+/* ============================================
+   Forms
+   ============================================ */
+.form-control {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    color: var(--text-primary);
+}
+
+.form-control:focus {
+    background-color: var(--bg-surface-hover);
+    border-color: var(--navy-400);
+    box-shadow: 0 0 0 0.25rem var(--navy-glow);
+    color: var(--text-primary);
+}
+
+.form-control::placeholder {
+    color: var(--text-tertiary);
+}
+
+.form-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 13px;
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   Login Page
+   ============================================ */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--navy-700) 0%, var(--navy-500) 100%);
+}
+
+.login-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.login-header {
+    background: linear-gradient(135deg, var(--navy-600) 0%, var(--navy-500) 100%);
+    color: var(--text-primary);
+    text-align: center;
+    padding: 2rem;
+}
+
+/* ============================================
+   Status Colors (Signal Colors)
+   ============================================ */
+.status-pending { color: var(--amber-500); }
+.status-assigned { color: var(--blue-500); }
+.status-in-progress { color: var(--blue-500); }
+.status-completed { color: var(--green-500); }
+.status-cancelled { color: var(--red-500); }
+
+/* ============================================
+   Priority Indicators (Signal Colors)
+   ============================================ */
+.priority-low { 
+    border-left: 4px solid var(--text-tertiary); 
+}
+.priority-medium { 
+    border-left: 4px solid var(--blue-500); 
+}
+.priority-high { 
+    border-left: 4px solid var(--amber-500); 
+}
+.priority-urgent { 
+    border-left: 4px solid var(--red-500); 
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* ============================================
+   Advanced Component Styling - Service Catalog Match
+   ============================================ */
+
+/* Page Headers */
+h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+h1 i {
+    color: var(--navy-300);
+    margin-right: 0.5rem;
+}
+
+/* Card Headers */
+.card-header {
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-medium);
+    padding: 1rem 1.25rem;
+}
+
+.card-title {
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Enhanced Button Styling */
+.btn {
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--navy-600), var(--navy-500));
+    border: none;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--navy-500), var(--navy-400));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--navy-glow);
+}
+
+.btn-outline-primary {
+    color: var(--navy-300);
+    border-color: var(--navy-500);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--navy-500);
+    border-color: var(--navy-500);
+    color: white;
+}
+
+.btn-outline-success {
+    color: var(--green-500);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.btn-outline-success:hover {
+    background: var(--green-glow);
+    border-color: var(--green-500);
+    color: var(--green-500);
+}
+
+.btn-outline-danger {
+    color: var(--red-500);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-outline-danger:hover {
+    background: var(--red-glow);
+    border-color: var(--red-500);
+    color: var(--red-500);
+}
+
+.btn-secondary {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+}
+
+/* Form Select Styling */
+.form-select {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-medium);
+    color: var(--text-primary);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238A92A6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.form-select:focus {
+    background-color: var(--bg-surface-hover);
+    border-color: var(--navy-400);
+    box-shadow: 0 0 0 0.25rem var(--navy-glow);
+}
+
+/* Input Group Styling */
+.input-group-text {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+}
+
+/* Search Input */
+.search-input {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 1rem;
+    color: var(--text-primary);
+}
+
+.search-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.search-input:focus {
+    background-color: var(--bg-surface);
+    outline: none;
+    border-color: var(--navy-400);
+}
+
+/* Badge Styling */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-info {
+    background-color: var(--blue-glow) !important;
+    color: var(--blue-500);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Status Badges (from helper functions) */
+.badge.bg-warning {
+    background-color: var(--amber-glow) !important;
+    color: var(--amber-400);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge.bg-success {
+    background-color: var(--green-glow) !important;
+    color: var(--green-500);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.badge.bg-danger {
+    background-color: var(--red-glow) !important;
+    color: var(--red-500);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge.bg-secondary {
+    background-color: rgba(92, 100, 120, 0.2) !important;
+    color: var(--text-secondary);
+    border: 1px solid rgba(92, 100, 120, 0.3);
+}
+
+/* Text Muted Override */
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Links */
+a {
+    color: var(--navy-300);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--navy-400);
+}
+
+/* Small Text */
+small {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+/* Emphasis */
+strong {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Button Groups */
+.btn-group {
+    gap: 0;
+}
+
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+}
+
+/* Table ID Column */
+.table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+/* Empty State Styling */
+.card-body p.text-muted:first-child:last-child {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-tertiary);
+}
+
+/* Delete Confirmation */
+.delete-btn {
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: var(--red-glow) !important;
+    border-color: var(--red-500) !important;
+    color: var(--red-500) !important;
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 0.25rem;
+    }
+}
