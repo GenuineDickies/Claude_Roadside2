@@ -93,7 +93,7 @@ $revenue = $pdo->query("
                                         <td>#<?php echo $request['id']; ?></td>
                                         <td>
                                             <strong><?php echo htmlspecialchars($request['first_name'] . ' ' . $request['last_name']); ?></strong><br>
-                                            <small class="text-muted"><?php echo htmlspecialchars($request['phone']); ?></small>
+                                            <small class="text-muted"><?php echo htmlspecialchars(format_phone($request['phone'])); ?></small>
                                         </td>
                                         <td><?php echo ucfirst(str_replace('_', ' ', $request['service_type'])); ?></td>
                                         <td><?php echo get_status_badge($request['status']); ?></td>

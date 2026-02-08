@@ -57,6 +57,9 @@ if ($page === 'logout') {
                 <a class="rr-nav-link <?php echo $page==='service-requests'?'active':''; ?>" href="?page=service-requests">
                     <i class="fas fa-clipboard-list"></i> Service Requests
                 </a>
+                <a class="rr-nav-link <?php echo $page==='service-intake'?'active':''; ?>" href="?page=service-intake">
+                    <i class="fas fa-plus-circle"></i> New Intake
+                </a>
                 <a class="rr-nav-link <?php echo $page==='customers'?'active':''; ?>" href="?page=customers">
                     <i class="fas fa-users"></i> Customers
                 </a>
@@ -64,9 +67,26 @@ if ($page === 'logout') {
                     <i class="fas fa-user-cog"></i> Technicians
                 </a>
 
+                <div class="rr-nav-section">Workflow</div>
+                <a class="rr-nav-link <?php echo $page==='estimates'?'active':''; ?>" href="?page=estimates">
+                    <i class="fas fa-file-invoice"></i> Estimates
+                </a>
+                <a class="rr-nav-link <?php echo $page==='work-orders'?'active':''; ?>" href="?page=work-orders">
+                    <i class="fas fa-clipboard-check"></i> Work Orders
+                </a>
+                <a class="rr-nav-link <?php echo $page==='change-orders'?'active':''; ?>" href="?page=change-orders">
+                    <i class="fas fa-exchange-alt"></i> Change Orders
+                </a>
+
                 <div class="rr-nav-section">Finance</div>
-                <a class="rr-nav-link <?php echo $page==='invoices'?'active':''; ?>" href="?page=invoices">
+                <a class="rr-nav-link <?php echo $page==='invoices-v2'?'active':''; ?>" href="?page=invoices-v2">
                     <i class="fas fa-file-invoice-dollar"></i> Invoices
+                </a>
+                <a class="rr-nav-link <?php echo $page==='receipts'?'active':''; ?>" href="?page=receipts">
+                    <i class="fas fa-receipt"></i> Receipts
+                </a>
+                <a class="rr-nav-link <?php echo $page==='invoices'?'active':''; ?>" href="?page=invoices">
+                    <i class="fas fa-file-alt"></i> Invoices (Legacy)
                 </a>
 
                 <div class="rr-nav-section">Catalog</div>
@@ -90,14 +110,20 @@ if ($page === 'logout') {
             <div class="rr-content">
                 <?php
                 switch ($page) {
-                    case 'dashboard':   include 'pages/dashboard.php'; break;
-                    case 'customers':   include 'pages/customers.php'; break;
+                    case 'dashboard':       include 'pages/dashboard.php'; break;
+                    case 'customers':       include 'pages/customers.php'; break;
                     case 'service-requests': include 'pages/service-requests.php'; break;
-                    case 'technicians': include 'pages/technicians.php'; break;
-                    case 'invoices':    include 'pages/invoices.php'; break;
-                    case 'services':    include 'services.php'; break;
-                    case 'director':    include 'pages/director.php'; break;
-                    default:            include 'pages/dashboard.php';
+                    case 'service-intake':  include 'pages/service-intake.php'; break;
+                    case 'technicians':     include 'pages/technicians.php'; break;
+                    case 'estimates':       include 'pages/estimates.php'; break;
+                    case 'work-orders':     include 'pages/work-orders.php'; break;
+                    case 'change-orders':   include 'pages/change-orders.php'; break;
+                    case 'invoices-v2':     include 'pages/invoices-v2.php'; break;
+                    case 'receipts':        include 'pages/receipts.php'; break;
+                    case 'invoices':        include 'pages/invoices.php'; break;
+                    case 'services':        include 'services.php'; break;
+                    case 'director':        include 'pages/director.php'; break;
+                    default:                include 'pages/dashboard.php';
                 }
                 ?>
             </div>

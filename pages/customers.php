@@ -156,7 +156,7 @@ if ($action === 'list') {
                                     <td>
                                         <strong><?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name']); ?></strong>
                                     </td>
-                                    <td><?php echo htmlspecialchars($customer['phone']); ?></td>
+                                    <td><?php echo htmlspecialchars(format_phone($customer['phone'])); ?></td>
                                     <td><?php echo htmlspecialchars($customer['email']); ?></td>
                                     <td><?php echo htmlspecialchars($customer['address']); ?></td>
                                     <td><?php echo format_date($customer['created_at']); ?></td>
@@ -213,10 +213,9 @@ if ($action === 'list') {
                                 $phone_value = $customer['phone'];
                             }
                             ?>
-                            <input type="tel" class="form-control" id="phone" name="phone" 
+                            <input type="tel" class="form-control phone-masked" id="phone" name="phone" 
                                    value="<?php echo htmlspecialchars($phone_value); ?>" 
-                                   placeholder="(555) 123-4567" 
-                                   maxlength="14" required>
+                                   required>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -245,25 +244,6 @@ if ($action === 'list') {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const phoneInput = document.getElementById('phone');
-    
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function() {
-            let value = this.value.replace(/\D/g, ''); // Remove non-digits
-            let formatted = '';
-            
-            if (value.length > 0) {
-                if (value.length <= 3) {
-                    formatted = '(' + value;
-                } else if (value.length <= 6) {
-                    formatted = '(' + value.substring(0, 3) + ') ' + value.substring(3);
-                } else {
-                    formatted = '(' + value.substring(0, 3) + ') ' + value.substring(3, 6) + '-' + value.substring(6, 10);
-                }
-            }
-            
-            this.value = formatted;
-        });
-    }
+    // Phone mask handled globally by app.js
 });
 </script>

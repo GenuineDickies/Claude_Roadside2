@@ -16,6 +16,16 @@ function format_currency($amount) {
     return '$' . number_format($amount, 2);
 }
 
+function format_phone($phone) {
+    $digits = preg_replace('/\D/', '', $phone);
+    if (strlen($digits) === 10) {
+        return '(' . substr($digits, 0, 3) . ') ' . substr($digits, 3, 3) . '-' . substr($digits, 6, 4);
+    } elseif (strlen($digits) === 11 && $digits[0] === '1') {
+        return '(' . substr($digits, 1, 3) . ') ' . substr($digits, 4, 3) . '-' . substr($digits, 7, 4);
+    }
+    return $phone; // Return as-is if not standard US format
+}
+
 function format_date($date) {
     return date('M d, Y', strtotime($date));
 }
@@ -37,7 +47,22 @@ function get_status_badge($status) {
         'draft' => 'secondary',
         'sent' => 'info',
         'paid' => 'success',
-        'overdue' => 'danger'
+        'overdue' => 'danger',
+        // Workflow statuses
+        'presented' => 'info',
+        'approved' => 'success',
+        'declined' => 'danger',
+        'revised' => 'warning',
+        'expired' => 'secondary',
+        'created' => 'info',
+        'paused' => 'warning',
+        'generated' => 'secondary',
+        'viewed' => 'info',
+        'partial' => 'warning',
+        'disputed' => 'danger',
+        'written_off' => 'secondary',
+        'proposed' => 'warning',
+        'voided' => 'secondary',
     ];
     
     $class = $badges[$status] ?? 'secondary';

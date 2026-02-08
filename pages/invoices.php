@@ -158,7 +158,7 @@ if ($action === 'list') {
                                     <td><strong><?php echo htmlspecialchars($inv['invoice_number']); ?></strong></td>
                                     <td>
                                         <strong><?php echo htmlspecialchars($inv['first_name'] . ' ' . $inv['last_name']); ?></strong><br>
-                                        <small class="text-muted"><?php echo htmlspecialchars($inv['phone']); ?></small>
+                                        <small class="text-muted"><?php echo htmlspecialchars(format_phone($inv['phone'])); ?></small>
                                     </td>
                                     <td><?php echo htmlspecialchars($inv['tech_first_name'] . ' ' . $inv['tech_last_name']); ?></td>
                                     <td><?php echo format_currency($inv['total_amount']); ?></td>
@@ -210,7 +210,7 @@ if ($action === 'list') {
                         <h6>Customer Information</h6>
                         <p>
                             <strong><?php echo htmlspecialchars($serviceRequest['first_name'] . ' ' . $serviceRequest['last_name']); ?></strong><br>
-                            <?php echo htmlspecialchars($serviceRequest['phone']); ?><br>
+                            <?php echo htmlspecialchars(format_phone($serviceRequest['phone'])); ?><br>
                             <?php echo htmlspecialchars($serviceRequest['email']); ?>
                         </p>
                     </div>
@@ -299,7 +299,7 @@ if ($action === 'list') {
                     <p>
                         <strong><?php echo htmlspecialchars($invoice['first_name'] . ' ' . $invoice['last_name']); ?></strong><br>
                         <?php echo nl2br(htmlspecialchars($invoice['address'])); ?><br>
-                        Phone: <?php echo htmlspecialchars($invoice['phone']); ?><br>
+                        Phone: <?php echo htmlspecialchars(format_phone($invoice['phone'])); ?><br>
                         Email: <?php echo htmlspecialchars($invoice['email']); ?>
                     </p>
                 </div>

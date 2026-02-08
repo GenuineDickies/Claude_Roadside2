@@ -153,7 +153,7 @@ if ($action === 'list') {
                                     <td>#<?php echo $req['id']; ?></td>
                                     <td>
                                         <strong><?php echo htmlspecialchars($req['first_name'] . ' ' . $req['last_name']); ?></strong><br>
-                                        <small class="text-muted"><?php echo htmlspecialchars($req['phone']); ?></small>
+                                        <small class="text-muted"><?php echo htmlspecialchars(format_phone($req['phone'])); ?></small>
                                     </td>
                                     <td><?php echo ucfirst(str_replace('_', ' ', $req['service_type'])); ?></td>
                                     <td><?php echo get_status_badge($req['status']); ?></td>
@@ -209,7 +209,7 @@ if ($action === 'list') {
                                 <?php foreach ($customers as $customer): ?>
                                     <option value="<?php echo $customer['id']; ?>" 
                                             <?php echo $customer_id == $customer['id'] ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'] . ' - ' . $customer['phone']); ?>
+                                        <?php echo htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'] . ' - ' . format_phone($customer['phone'])); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -288,7 +288,7 @@ if ($action === 'list') {
                         <div class="col-md-6">
                             <h6>Customer Information</h6>
                             <p><strong><?php echo htmlspecialchars($request['first_name'] . ' ' . $request['last_name']); ?></strong></p>
-                            <p><i class="fas fa-phone"></i> <?php echo htmlspecialchars($request['phone']); ?></p>
+                            <p><i class="fas fa-phone"></i> <?php echo htmlspecialchars(format_phone($request['phone'])); ?></p>
                             <p><i class="fas fa-envelope"></i> <?php echo htmlspecialchars($request['email']); ?></p>
                         </div>
                         <div class="col-md-6">
