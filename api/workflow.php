@@ -781,7 +781,11 @@ case 'get_audit_log':
 
 case 'search_parts':
     $q = trim($_GET['q'] ?? '');
-    if (strlen($q) < 2) { echo json_encode(['success' => true, 'data' => []]); break; }
+    if (strlen($q) < 2) {
+        $stmt = $pdo->query("SELECT * FROM parts_inventory WHERE active = 1 ORDER BY category, name LIMIT 50");
+        echo json_encode(['success' => true, 'data' => $stmt->fetchAll()]);
+        break;
+    }
     $stmt = $pdo->prepare("SELECT * FROM parts_inventory WHERE active = 1 AND (name LIKE ? OR part_number LIKE ? OR category LIKE ?) ORDER BY name LIMIT 20");
     $s = "%{$q}%";
     $stmt->execute([$s, $s, $s]);

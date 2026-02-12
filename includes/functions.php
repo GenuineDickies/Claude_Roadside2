@@ -63,6 +63,14 @@ function get_status_badge($status) {
         'written_off' => 'secondary',
         'proposed' => 'warning',
         'voided' => 'secondary',
+        // Service ticket statuses
+        'dispatched' => 'info',
+        'acknowledged' => 'info',
+        'en_route' => 'primary',
+        'on_scene' => 'primary',
+        'closed' => 'success',
+        'escalated' => 'danger',
+        'on_hold' => 'warning',
     ];
     
     $class = $badges[$status] ?? 'secondary';
@@ -74,11 +82,22 @@ function get_priority_badge($priority) {
         'low' => 'secondary',
         'medium' => 'info',
         'high' => 'warning',
-        'urgent' => 'danger'
+        'urgent' => 'danger',
+        'P1' => 'danger',
+        'P2' => 'warning',
+        'P3' => 'info',
+        'P4' => 'secondary'
+    ];
+    $labels = [
+        'P1' => 'Urgent',
+        'P2' => 'High',
+        'P3' => 'Normal',
+        'P4' => 'Low'
     ];
     
     $class = $badges[$priority] ?? 'secondary';
-    return "<span class='badge bg-{$class}'>" . ucfirst($priority) . "</span>";
+    $label = $labels[$priority] ?? ucfirst($priority);
+    return "<span class='badge bg-{$class}'>{$label}</span>";
 }
 
 function redirect($url) {

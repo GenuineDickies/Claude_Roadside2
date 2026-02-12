@@ -103,12 +103,44 @@ $technicians = $pdo->query("SELECT id, first_name, last_name, specialization FRO
 .est-total-row.grand { padding: 12px 0; border-top: 2px solid var(--navy-500); font-size: 16px; font-weight: 700; margin-top: 4px; }
 .est-total-row .money { font-family: 'JetBrains Mono', monospace; }
 
+/* Form elements — scoped to estimates page */
+.est-label { font-size: 12px; font-weight: 600; color: #BCC3D4; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+.est-label .req { color: var(--red-500); }
+.est-input, .est-select, .est-textarea {
+    width: 100%; background: var(--bg-primary); border: 1px solid var(--border-medium);
+    border-radius: 6px; padding: 8px 12px; color: var(--text-primary); font-size: 13px;
+    font-family: 'DM Sans', sans-serif; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.est-input:focus, .est-select:focus, .est-textarea:focus {
+    border-color: var(--navy-400); outline: none; box-shadow: 0 0 0 3px rgba(43,94,167,0.15);
+}
+.est-input.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.est-textarea { resize: vertical; min-height: 60px; }
+.est-select { cursor: pointer; }
+
 /* Add item form */
 .est-add-row { display: grid; grid-template-columns: 140px 1fr 80px 100px 100px 36px; gap: 8px; align-items: end; margin-top: 12px; padding: 12px; background: var(--bg-primary); border: 1px dashed var(--border-medium); border-radius: 6px; }
 @media (max-width: 768px) { .est-add-row { grid-template-columns: 1fr 1fr; } }
 .est-add-row label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 2px; display: block; }
 .est-add-row input, .est-add-row select { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 4px; padding: 6px 8px; color: var(--text-primary); font-size: 12px; width: 100%; }
 .est-add-row input:focus, .est-add-row select:focus { border-color: var(--navy-400); outline: none; }
+
+/* Catalog panel */
+.est-catalog-panel { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none; }
+.est-catalog-panel.open { display: block; }
+.est-catalog-tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px; }
+.est-catalog-tab { padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer; border: 1px solid transparent; border-bottom: none; background: transparent; }
+.est-catalog-tab:hover { color: var(--text-primary); }
+.est-catalog-tab.active { color: var(--navy-300); background: rgba(43,94,167,0.08); border-color: var(--border-medium); }
+.est-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
+.est-catalog-item { background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: all 0.15s; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.est-catalog-item:hover { border-color: var(--navy-400); background: var(--bg-surface-hover); transform: translateY(-1px); }
+.est-catalog-item .item-info { flex: 1; min-width: 0; }
+.est-catalog-item .item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.est-catalog-item .item-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.est-catalog-item .item-price { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--navy-300); white-space: nowrap; }
+.est-catalog-search { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: 6px; padding: 8px 12px 8px 34px; color: var(--text-primary); font-size: 13px; margin-bottom: 12px; }
+.est-catalog-search:focus { border-color: var(--navy-400); outline: none; }
 
 /* Approval card */
 .est-approval { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 10px; padding: 20px; margin-top: 20px; }
@@ -130,7 +162,7 @@ $technicians = $pdo->query("SELECT id, first_name, last_name, specialization FRO
         </div>
     </div>
     <div style="display:flex;gap:8px">
-        <select class="intake-select" onchange="location.href='?page=estimates&status='+this.value" style="width:auto;padding:6px 12px;font-size:12px;background:var(--bg-primary);border:1px solid var(--border-medium);border-radius:6px;color:var(--text-primary)">
+        <select class="est-select" onchange="location.href='?page=estimates&status='+this.value" style="width:auto;padding:6px 12px;font-size:12px">
             <option value="">All Statuses</option>
             <option value="draft" <?= ($_GET['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Draft</option>
             <option value="presented" <?= ($_GET['status'] ?? '') === 'presented' ? 'selected' : '' ?>>Presented</option>
@@ -216,8 +248,8 @@ $technicians = $pdo->query("SELECT id, first_name, last_name, specialization FRO
 
     <div class="row g-3 mb-4">
         <div class="col-md-6">
-            <label class="intake-label"><span class="req">*</span> Technician</label>
-            <select class="intake-select" name="technician_id" required>
+            <label class="est-label"><span class="req">*</span> Technician</label>
+            <select class="est-select" name="technician_id" required>
                 <option value="">Select technician...</option>
                 <?php foreach ($technicians as $t): ?>
                     <option value="<?= $t['id'] ?>" <?= ($srData['technician_id'] ?? '') == $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['first_name'] . ' ' . $t['last_name']) ?> <?= $t['specialization'] ? '(' . htmlspecialchars($t['specialization']) . ')' : '' ?></option>
@@ -225,27 +257,43 @@ $technicians = $pdo->query("SELECT id, first_name, last_name, specialization FRO
             </select>
         </div>
         <div class="col-md-3">
-            <label class="intake-label">Tax Rate (%)</label>
-            <input type="number" class="intake-input mono" name="tax_rate_pct" value="8.25" step="0.01" min="0" max="15" id="taxRateInput">
+            <label class="est-label">Tax Rate (%)</label>
+            <input type="number" class="est-input mono" name="tax_rate_pct" value="8.25" step="0.01" min="0" max="15" id="taxRateInput">
         </div>
     </div>
 
     <div class="mb-3">
-        <label class="intake-label"><span class="req">*</span> Diagnosis Summary</label>
-        <textarea class="intake-textarea" name="diagnosis_summary" rows="3" placeholder="Technician's on-scene assessment..." required></textarea>
+        <label class="est-label"><span class="req">*</span> Diagnosis Summary</label>
+        <textarea class="est-textarea" name="diagnosis_summary" rows="3" placeholder="Technician's on-scene assessment..." required></textarea>
     </div>
     <div class="mb-4">
-        <label class="intake-label">Diagnostic Codes (OBD-II)</label>
-        <input type="text" class="intake-input mono" name="diagnostic_codes" placeholder="P0300, P0171, etc. (comma separated)">
+        <label class="est-label">Diagnostic Codes (OBD-II)</label>
+        <input type="text" class="est-input mono" name="diagnostic_codes" placeholder="P0300, P0171, etc. (comma separated)">
     </div>
 
     <!-- Line Items -->
     <div style="background:var(--bg-surface);border:1px solid var(--border-medium);border-radius:10px;padding:20px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h3 style="font-size:14px;font-weight:600;margin:0"><i class="fas fa-list" style="color:var(--navy-300);margin-right:6px"></i> Line Items</h3>
-            <div style="display:flex;gap:6px">
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addFromCatalog()"><i class="fas fa-book"></i> From Catalog</button>
-                <button type="button" class="btn btn-sm btn-outline-primary" onclick="searchParts()"><i class="fas fa-cog"></i> Search Parts</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleCatalog()" id="catalogToggleBtn"><i class="fas fa-book"></i> Browse Catalog</button>
+        </div>
+
+        <!-- Inline Catalog Panel -->
+        <div class="est-catalog-panel" id="catalogPanel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <h4 style="font-size:13px;font-weight:600;color:var(--navy-300);margin:0"><i class="fas fa-book-open" style="margin-right:6px"></i> Service & Parts Catalog</h4>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleCatalog()" style="padding:2px 8px;font-size:11px"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="est-catalog-tabs">
+                <button type="button" class="est-catalog-tab active" onclick="switchCatalogTab('services', this)">Services</button>
+                <button type="button" class="est-catalog-tab" onclick="switchCatalogTab('parts', this)">Parts</button>
+            </div>
+            <div style="position:relative;margin-bottom:12px">
+                <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);font-size:12px"></i>
+                <input type="text" class="est-catalog-search" id="catalogSearch" placeholder="Search services or parts..." oninput="filterCatalog()">
+            </div>
+            <div class="est-catalog-grid" id="catalogGrid">
+                <div style="text-align:center;padding:30px;color:var(--text-tertiary);grid-column:1/-1">Loading catalog...</div>
             </div>
         </div>
 
@@ -312,8 +360,8 @@ $technicians = $pdo->query("SELECT id, first_name, last_name, specialization FRO
     </div>
 
     <div class="mb-3 mt-3">
-        <label class="intake-label">Internal Notes</label>
-        <textarea class="intake-textarea" name="internal_notes" rows="2" placeholder="Internal notes (not shown to customer)..."></textarea>
+        <label class="est-label">Internal Notes</label>
+        <textarea class="est-textarea" name="internal_notes" rows="2" placeholder="Internal notes (not shown to customer)..."></textarea>
     </div>
 
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
@@ -562,48 +610,100 @@ function updateTotals() {
 
 document.getElementById('taxRateInput')?.addEventListener('input', updateTotals);
 
-// ─── Catalog loader ─────────────────────────────────────────────────
-async function addFromCatalog() {
-    const cat = prompt('Service category slug (towing, lockout, jump_start, tire_service, fuel_delivery, mobile_repair, winch_recovery):');
-    if (!cat) return;
-    const res = await fetch(`${API_T}?action=get_services&category=${cat}`);
-    const json = await res.json();
-    if (json.success && json.data.length) {
-        const svc = json.data;
-        const choice = prompt('Available:\n' + svc.map((s,i) => `${i+1}. ${s.name} — $${s.base_rate}`).join('\n') + '\n\nEnter number:');
-        if (choice) {
-            const s = svc[parseInt(choice)-1];
-            if (s) {
-                document.getElementById('newItemType').value = 'service_fee';
-                document.getElementById('newItemDesc').value = s.name;
-                document.getElementById('newItemPrice').value = s.base_rate;
-                addLineItem();
-            }
-        }
+// ─── Catalog Panel ──────────────────────────────────────────────────
+let catalogData = { services: [], parts: [] };
+let catalogTab = 'services';
+
+function toggleCatalog() {
+    const panel = document.getElementById('catalogPanel');
+    const isOpen = panel.classList.toggle('open');
+    if (isOpen && !catalogData.services.length && !catalogData.parts.length) loadCatalog();
+}
+
+function switchCatalogTab(tab, btn) {
+    catalogTab = tab;
+    document.querySelectorAll('.est-catalog-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('catalogSearch').value = '';
+    renderCatalog();
+}
+
+async function loadCatalog() {
+    try {
+        const [svcRes, partsRes] = await Promise.all([
+            fetch(API_T + '?action=get_services'),
+            fetch(API_W + '?action=search_parts&q=')
+        ]);
+        const svcJson = await svcRes.json();
+        const partsJson = await partsRes.json();
+        if (svcJson.success) catalogData.services = svcJson.data;
+        if (partsJson.success) catalogData.parts = partsJson.data;
+        renderCatalog();
+    } catch(e) { console.error(e); }
+}
+
+function filterCatalog() {
+    renderCatalog();
+}
+
+function renderCatalog() {
+    const grid = document.getElementById('catalogGrid');
+    const search = document.getElementById('catalogSearch').value.toLowerCase().trim();
+    let items = catalogTab === 'services' ? catalogData.services : catalogData.parts;
+
+    if (search) {
+        items = items.filter(i => {
+            const name = (i.name || '').toLowerCase();
+            const cat = (i.category_name || i.category || '').toLowerCase();
+            const num = (i.part_number || '').toLowerCase();
+            return name.includes(search) || cat.includes(search) || num.includes(search);
+        });
+    }
+
+    if (!items.length) {
+        grid.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-tertiary);grid-column:1/-1">' +
+            (search ? 'No matches for "' + search + '"' : 'No items in catalog') + '</div>';
+        return;
+    }
+
+    if (catalogTab === 'services') {
+        grid.innerHTML = items.map(s =>
+            '<div class="est-catalog-item" onclick="addCatalogService(' + JSON.stringify(s).replace(/"/g, '&quot;') + ')">' +
+            '<div class="item-info"><div class="item-name">' + escHtml(s.name) + '</div>' +
+            '<div class="item-meta">' + escHtml(s.category_name || '') + '</div></div>' +
+            '<div class="item-price">$' + parseFloat(s.base_rate).toFixed(2) + '</div></div>'
+        ).join('');
+    } else {
+        grid.innerHTML = items.map(p =>
+            '<div class="est-catalog-item" onclick="addCatalogPart(' + JSON.stringify(p).replace(/"/g, '&quot;') + ')">' +
+            '<div class="item-info"><div class="item-name">' + escHtml(p.name) + '</div>' +
+            '<div class="item-meta"><span style="font-family:JetBrains Mono,monospace;font-size:10px">' + escHtml(p.part_number) + '</span> · ' + escHtml(p.category || '') + ' · ' + p.markup_pct + '% markup</div></div>' +
+            '<div class="item-price">$' + parseFloat(p.unit_cost).toFixed(2) + '</div></div>'
+        ).join('');
     }
 }
 
-async function searchParts() {
-    const q = prompt('Search parts by name or number:');
-    if (!q) return;
-    const res = await fetch(`${API_W}?action=search_parts&q=${encodeURIComponent(q)}`);
-    const json = await res.json();
-    if (json.success && json.data.length) {
-        const parts = json.data;
-        const choice = prompt('Found:\n' + parts.map((p,i) => `${i+1}. [${p.part_number}] ${p.name} — $${p.unit_cost} (${p.markup_pct}% markup)`).join('\n') + '\n\nEnter number:');
-        if (choice) {
-            const p = parts[parseInt(choice)-1];
-            if (p) {
-                document.getElementById('newItemType').value = 'parts';
-                document.getElementById('newItemDesc').value = `[${p.part_number}] ${p.name}`;
-                document.getElementById('newItemPrice').value = p.unit_cost;
-                document.getElementById('newItemMarkup').value = p.markup_pct;
-                addLineItem();
-            }
-        }
-    } else {
-        alert('No parts found for "' + q + '"');
-    }
+function addCatalogService(s) {
+    document.getElementById('newItemType').value = 'service_fee';
+    document.getElementById('newItemDesc').value = s.name;
+    document.getElementById('newItemPrice').value = s.base_rate;
+    document.getElementById('newItemMarkup').value = '';
+    addLineItem();
+}
+
+function addCatalogPart(p) {
+    document.getElementById('newItemType').value = 'parts';
+    document.getElementById('newItemDesc').value = '[' + p.part_number + '] ' + p.name;
+    document.getElementById('newItemPrice').value = p.unit_cost;
+    document.getElementById('newItemMarkup').value = p.markup_pct;
+    addLineItem();
+}
+
+function escHtml(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
 }
 
 // ─── Save Estimate ──────────────────────────────────────────────────

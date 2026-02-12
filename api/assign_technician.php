@@ -49,15 +49,11 @@ try {
     // Begin transaction
     $pdo->beginTransaction();
     
-    // Assign technician to service request
+    // Assign technician to service request (does NOT dispatch or change tech status)
     $stmt = $pdo->prepare("UPDATE service_requests SET technician_id = ?, status = 'assigned' WHERE id = ?");
-    $result1 = $stmt->execute([$technicianId, $requestId]);
+    $result = $stmt->execute([$technicianId, $requestId]);
     
-    // Update technician status to busy
-    $stmt = $pdo->prepare("UPDATE technicians SET status = 'busy' WHERE id = ?");
-    $result2 = $stmt->execute([$technicianId]);
-    
-    if ($result1 && $result2) {
+    if ($result) {
         $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Technician assigned successfully']);
     } else {

@@ -85,8 +85,13 @@ if ($page === 'logout') {
                 <a class="rr-nav-link <?php echo $page==='receipts'?'active':''; ?>" href="?page=receipts">
                     <i class="fas fa-receipt"></i> Receipts
                 </a>
-                <a class="rr-nav-link <?php echo $page==='invoices'?'active':''; ?>" href="?page=invoices">
-                    <i class="fas fa-file-alt"></i> Invoices (Legacy)
+                <a class="rr-nav-link <?php echo $page==='expenses'?'active':''; ?>" href="?page=expenses">
+                    <i class="fas fa-wallet"></i> Expenses
+                </a>
+
+                <div class="rr-nav-section">Compliance</div>
+                <a class="rr-nav-link <?php echo $page==='compliance'?'active':''; ?>" href="?page=compliance">
+                    <i class="fas fa-shield-alt"></i> Licenses & Certs
                 </a>
 
                 <div class="rr-nav-section">Catalog</div>
@@ -121,6 +126,8 @@ if ($page === 'logout') {
                     case 'invoices-v2':     include 'pages/invoices-v2.php'; break;
                     case 'receipts':        include 'pages/receipts.php'; break;
                     case 'invoices':        include 'pages/invoices.php'; break;
+                    case 'expenses':        include 'pages/expenses.php'; break;
+                    case 'compliance':      include 'pages/compliance.php'; break;
                     case 'services':        include 'services.php'; break;
                     case 'director':        include 'pages/director.php'; break;
                     default:                include 'pages/dashboard.php';

@@ -273,7 +273,8 @@ a:hover { color: var(--navy-400); }
     color: var(--text-primary);
 }
 
-.table > tbody > tr:hover { background: var(--bg-surface-hover); }
+.table > tbody > tr:hover { background: var(--bg-surface-hover); color: var(--text-primary); --bs-table-hover-color: var(--text-primary); --bs-table-hover-bg: var(--bg-surface-hover); }
+.table-hover > tbody > tr:hover > * { color: var(--text-primary) !important; --bs-table-hover-color: var(--text-primary); --bs-table-accent-bg: var(--bg-surface-hover); }
 .table > tbody > tr:last-child > td { border-bottom: none; }
 
 .table-responsive { border-radius: 10px; overflow: hidden; }

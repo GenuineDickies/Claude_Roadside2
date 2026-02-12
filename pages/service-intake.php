@@ -661,11 +661,11 @@ $techsForDropdown = $pdo->query("SELECT id, first_name, last_name, specializatio
                 <label class="intake-label"><span class="req">*</span> Priority Level</label>
                 <div class="intake-priority-grid">
                     <div class="intake-priority-card" data-val="P1" onclick="selectPriority(this)"><div class="level">P1</div><div class="desc">Emergency</div></div>
-                    <div class="intake-priority-card selected" data-val="P2" onclick="selectPriority(this)"><div class="level">P2</div><div class="desc">Urgent</div></div>
-                    <div class="intake-priority-card" data-val="P3" onclick="selectPriority(this)"><div class="level">P3</div><div class="desc">Standard</div></div>
+                    <div class="intake-priority-card" data-val="P2" onclick="selectPriority(this)"><div class="level">P2</div><div class="desc">Urgent</div></div>
+                    <div class="intake-priority-card selected" data-val="P3" onclick="selectPriority(this)"><div class="level">P3</div><div class="desc">Normal</div></div>
                     <div class="intake-priority-card" data-val="P4" onclick="selectPriority(this)"><div class="level">P4</div><div class="desc">Scheduled</div></div>
                 </div>
-                <input type="hidden" name="priority" id="priorityInput" value="P2">
+                <input type="hidden" name="priority" id="priorityInput" value="P3">
 
                 <div class="row g-3" style="margin-top:12px">
                     <div class="col-md-4">
@@ -1213,7 +1213,7 @@ function updateSummary() {
     document.getElementById('sumVehicle').textContent = (year || make || model) ? `${year || ''} ${make || ''} ${model || ''}`.trim() : '—';
     document.getElementById('sumLocation').textContent = addr ? (addr.length > 30 ? addr.substring(0,30) + '…' : addr) : '—';
     document.getElementById('sumService').textContent = selectedCategory ? selectedCategory.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '—';
-    document.getElementById('sumPriority').textContent = priority || 'P2';
+    document.getElementById('sumPriority').textContent = priority || 'P3';
     document.getElementById('sumPayment').textContent = payment || 'Card';
     document.getElementById('sumCost').textContent = cost ? '$' + parseFloat(cost).toFixed(2) : '$0.00';
 }

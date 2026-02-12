@@ -6,35 +6,73 @@ $customer_id = $_GET['customer_id'] ?? null;
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_request'])) {
-        $stmt = $pdo->prepare("INSERT INTO service_requests (customer_id, service_type, description, location, priority, estimated_cost) VALUES (?, ?, ?, ?, ?, ?)");
+        // Generate ticket number
+        $dateStr = date('Ymd');
+        $lastNum = $pdo->query("SELECT ticket_number FROM service_tickets WHERE ticket_number LIKE 'RR-{$dateStr}-%' ORDER BY id DESC LIMIT 1")->fetchColumn();
+        if ($lastNum) {
+            $seq = intval(substr($lastNum, -4)) + 1;
+        } else {
+            $seq = 1;
+        }
+        $ticketNum = 'RR-' . $dateStr . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+
+        // Get customer info for snapshot fields
+        $custStmt = $pdo->prepare("SELECT first_name, last_name, phone, email FROM customers WHERE id = ?");
+        $custStmt->execute([$_POST['customer_id']]);
+        $cust = $custStmt->fetch();
+
+        $stmt = $pdo->prepare("INSERT INTO service_tickets (ticket_number, customer_id, customer_name, customer_phone, customer_email, service_category, issue_description, service_address, priority, estimated_cost, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'created', ?)");
         $result = $stmt->execute([
+            $ticketNum,
             $_POST['customer_id'],
-            $_POST['service_type'],
-            sanitize_input($_POST['description']),
-            sanitize_input($_POST['location']),
+            $cust ? $cust['first_name'] . ' ' . $cust['last_name'] : '',
+            $cust ? $cust['phone'] : '',
+            $cust ? $cust['email'] : '',
+            $_POST['service_category'],
+            sanitize_input($_POST['issue_description']),
+            sanitize_input($_POST['service_address']),
             $_POST['priority'],
             floatval($_POST['estimated_cost'])
+            ,
+            $_SESSION['user_id'] ?? null
         ]);
         
         if ($result) {
-            show_alert('Service request created successfully!', 'success');
+            show_alert('Service ticket created successfully!', 'success');
             $action = 'list';
         } else {
-            show_alert('Error creating service request.', 'danger');
+            show_alert('Error creating service ticket.', 'danger');
         }
     } elseif (isset($_POST['assign_technician'])) {
-        $stmt = $pdo->prepare("UPDATE service_requests SET technician_id=?, status='assigned' WHERE id=?");
+        // Assign technician only — does NOT dispatch. Dispatch is a separate action.
+        $stmt = $pdo->prepare("UPDATE service_tickets SET technician_id=? WHERE id=?");
         $result = $stmt->execute([$_POST['technician_id'], $id]);
         
         if ($result) {
-            // Update technician status to busy
-            $pdo->prepare("UPDATE technicians SET status='busy' WHERE id=?")->execute([$_POST['technician_id']]);
             show_alert('Technician assigned successfully!', 'success');
         } else {
             show_alert('Error assigning technician.', 'danger');
         }
+    } elseif (isset($_POST['dispatch_ticket'])) {
+        // Dispatch — explicitly sets status to dispatched. Requires a technician already assigned.
+        $stmt = $pdo->prepare("SELECT technician_id FROM service_tickets WHERE id = ?");
+        $stmt->execute([$id]);
+        $ticket = $stmt->fetch();
+        
+        if (!$ticket || !$ticket['technician_id']) {
+            show_alert('Cannot dispatch: no technician assigned.', 'danger');
+        } else {
+            $stmt = $pdo->prepare("UPDATE service_tickets SET status='dispatched', dispatched_at=NOW() WHERE id=?");
+            $result = $stmt->execute([$id]);
+            if ($result) {
+                $pdo->prepare("UPDATE technicians SET status='busy' WHERE id=?")->execute([$ticket['technician_id']]);
+                show_alert('Ticket dispatched!', 'success');
+            } else {
+                show_alert('Error dispatching ticket.', 'danger');
+            }
+        }
     } elseif (isset($_POST['update_status'])) {
-        $stmt = $pdo->prepare("UPDATE service_requests SET status=?, actual_cost=?, completed_at=? WHERE id=?");
+        $stmt = $pdo->prepare("UPDATE service_tickets SET status=?, price_quoted=?, completed_at=? WHERE id=?");
         $completed_at = $_POST['status'] === 'completed' ? date('Y-m-d H:i:s') : null;
         $result = $stmt->execute([
             $_POST['status'],
@@ -45,32 +83,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($result && $_POST['status'] === 'completed') {
             // Update technician status back to available
-            $pdo->prepare("UPDATE technicians SET status='available' WHERE id = (SELECT technician_id FROM service_requests WHERE id=?)")->execute([$id]);
+            $pdo->prepare("UPDATE technicians SET status='available' WHERE id = (SELECT technician_id FROM service_tickets WHERE id=?)")->execute([$id]);
         }
         
         if ($result) {
-            show_alert('Service request updated successfully!', 'success');
+            show_alert('Service ticket updated successfully!', 'success');
         } else {
-            show_alert('Error updating service request.', 'danger');
+            show_alert('Error updating service ticket.', 'danger');
         }
     }
 }
 
-// Get service request data for view/edit
+// Get service ticket data for view/edit
 if (($action === 'view' || $action === 'assign') && $id) {
     $stmt = $pdo->prepare("
-        SELECT sr.*, c.first_name, c.last_name, c.phone, c.email, c.address,
+        SELECT st.*, c.first_name, c.last_name, c.phone, c.email, c.address,
                t.first_name as tech_first_name, t.last_name as tech_last_name, t.phone as tech_phone
-        FROM service_requests sr
-        LEFT JOIN customers c ON sr.customer_id = c.id
-        LEFT JOIN technicians t ON sr.technician_id = t.id
-        WHERE sr.id = ?
+        FROM service_tickets st
+        LEFT JOIN customers c ON st.customer_id = c.id
+        LEFT JOIN technicians t ON st.technician_id = t.id
+        WHERE st.id = ?
     ");
     $stmt->execute([$id]);
     $request = $stmt->fetch();
     
     if (!$request) {
-        show_alert('Service request not found.', 'danger');
+        show_alert('Service ticket not found.', 'danger');
         $action = 'list';
     }
 }
@@ -81,15 +119,15 @@ $customers = $pdo->query("SELECT id, first_name, last_name, phone FROM customers
 // Get available technicians for assignment
 $availableTechnicians = $pdo->query("SELECT id, first_name, last_name, specialization FROM technicians WHERE status = 'available' ORDER BY first_name, last_name")->fetchAll();
 
-// Get all service requests for list view
+// Get all service tickets for list view
 if ($action === 'list') {
     $requests = $pdo->query("
-        SELECT sr.*, c.first_name, c.last_name, c.phone,
+        SELECT st.*, c.first_name, c.last_name, c.phone,
                t.first_name as tech_first_name, t.last_name as tech_last_name
-        FROM service_requests sr
-        LEFT JOIN customers c ON sr.customer_id = c.id
-        LEFT JOIN technicians t ON sr.technician_id = t.id
-        ORDER BY sr.created_at DESC
+        FROM service_tickets st
+        LEFT JOIN customers c ON st.customer_id = c.id
+        LEFT JOIN technicians t ON st.technician_id = t.id
+        ORDER BY st.created_at DESC
     ")->fetchAll();
 }
 ?>
@@ -98,7 +136,7 @@ if ($action === 'list') {
     <div class="header-left">
         <i class="fas fa-clipboard-list header-icon"></i>
         <div>
-            <h1>Service Requests</h1>
+            <h1>Service Tickets</h1>
             <div class="header-subtitle">Track and manage service operations</div>
         </div>
     </div>
@@ -121,7 +159,7 @@ if ($action === 'list') {
         <div class="card-header">
             <div class="row">
                 <div class="col-md-6">
-                    <h5 class="card-title mb-0">All Service Requests</h5>
+                    <h5 class="card-title mb-0">All Service Tickets</h5>
                 </div>
                 <div class="col-md-6">
                     <input type="text" class="form-control search-input" placeholder="Search requests...">
@@ -130,15 +168,15 @@ if ($action === 'list') {
         </div>
         <div class="card-body">
             <?php if (empty($requests)): ?>
-                <p class="text-muted">No service requests found. <a href="?page=service-requests&action=add">Create the first request</a>.</p>
+                <p class="text-muted">No service tickets found. <a href="?page=service-intake">Create the first ticket</a>.</p>
             <?php else: ?>
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>Ticket #</th>
                                 <th>Customer</th>
-                                <th>Service Type</th>
+                                <th>Service</th>
                                 <th>Status</th>
                                 <th>Priority</th>
                                 <th>Technician</th>
@@ -150,12 +188,12 @@ if ($action === 'list') {
                         <tbody>
                             <?php foreach ($requests as $req): ?>
                                 <tr class="searchable-row priority-<?php echo $req['priority']; ?>">
-                                    <td>#<?php echo $req['id']; ?></td>
+                                    <td style="font-family:'JetBrains Mono',monospace;font-size:12px"><?php echo htmlspecialchars($req['ticket_number']); ?></td>
                                     <td>
                                         <strong><?php echo htmlspecialchars($req['first_name'] . ' ' . $req['last_name']); ?></strong><br>
                                         <small class="text-muted"><?php echo htmlspecialchars(format_phone($req['phone'])); ?></small>
                                     </td>
-                                    <td><?php echo ucfirst(str_replace('_', ' ', $req['service_type'])); ?></td>
+                                    <td><?php echo ucfirst(str_replace('_', ' ', $req['service_category'])); ?></td>
                                     <td><?php echo get_status_badge($req['status']); ?></td>
                                     <td><?php echo get_priority_badge($req['priority']); ?></td>
                                     <td>
@@ -166,8 +204,8 @@ if ($action === 'list') {
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($req['actual_cost'] > 0): ?>
-                                            <?php echo format_currency($req['actual_cost']); ?>
+                                        <?php if ($req['price_quoted'] > 0): ?>
+                                            <?php echo format_currency($req['price_quoted']); ?>
                                         <?php else: ?>
                                             <span class="text-muted"><?php echo format_currency($req['estimated_cost']); ?></span>
                                         <?php endif; ?>
@@ -177,7 +215,11 @@ if ($action === 'list') {
                                         <div class="btn-group btn-group-sm">
                                             <a href="?page=service-requests&action=view&id=<?php echo $req['id']; ?>" 
                                                class="btn btn-outline-primary">View</a>
-                                            <?php if ($req['status'] === 'completed' && !$req['technician_id']): ?>
+                                            <?php if (in_array($req['status'], ['created', 'dispatched', 'acknowledged', 'en_route', 'on_scene', 'in_progress'])): ?>
+                                                <a href="?page=estimates&action=create&sr_id=<?php echo $req['id']; ?>" 
+                                                   class="btn btn-outline-info" title="Create Estimate">Estimate</a>
+                                            <?php endif; ?>
+                                            <?php if ($req['status'] === 'completed'): ?>
                                                 <a href="?page=invoices&action=create&request_id=<?php echo $req['id']; ?>" 
                                                    class="btn btn-outline-success">Invoice</a>
                                             <?php endif; ?>
@@ -193,10 +235,10 @@ if ($action === 'list') {
     </div>
 
 <?php elseif ($action === 'add'): ?>
-    <!-- Add New Request Form -->
+    <!-- Add New Service Ticket Form -->
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title">Create New Service Request</h5>
+            <h5 class="card-title">Create New Service Ticket</h5>
         </div>
         <div class="card-body">
             <form method="POST">
@@ -217,27 +259,29 @@ if ($action === 'list') {
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="service_type" class="form-label">Service Type *</label>
-                            <select class="form-select" id="service_type" name="service_type" required>
+                            <label for="service_category" class="form-label">Service Category *</label>
+                            <select class="form-select" id="service_category" name="service_category" required>
                                 <option value="">Select Service</option>
-                                <option value="battery_jump">Battery Jump Start</option>
-                                <option value="tire_change">Tire Change</option>
+                                <option value="towing">Towing</option>
                                 <option value="lockout">Vehicle Lockout</option>
-                                <option value="towing">Towing Service</option>
+                                <option value="jump_start">Jump Start</option>
+                                <option value="tire_service">Tire Service</option>
                                 <option value="fuel_delivery">Fuel Delivery</option>
+                                <option value="mobile_repair">Mobile Repair</option>
+                                <option value="winch_recovery">Winch Recovery</option>
                                 <option value="other">Other</option>
                             </select>
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea class="form-control" id="description" name="description" rows="3" 
+                    <label for="issue_description" class="form-label">Description</label>
+                    <textarea class="form-control" id="issue_description" name="issue_description" rows="3" 
                               placeholder="Describe the issue and any specific requirements..."></textarea>
                 </div>
                 <div class="mb-3">
-                    <label for="location" class="form-label">Location *</label>
-                    <textarea class="form-control" id="location" name="location" rows="2" 
+                    <label for="service_address" class="form-label">Location *</label>
+                    <textarea class="form-control" id="service_address" name="service_address" rows="2" 
                               placeholder="Exact address or location details..." required></textarea>
                 </div>
                 <div class="row">
@@ -245,10 +289,10 @@ if ($action === 'list') {
                         <div class="mb-3">
                             <label for="priority" class="form-label">Priority</label>
                             <select class="form-select" id="priority" name="priority">
-                                <option value="medium">Medium</option>
-                                <option value="low">Low</option>
-                                <option value="high">High</option>
-                                <option value="urgent">Urgent</option>
+                                <option value="P4">Low (P4)</option>
+                                <option value="P3" selected>Normal (P3)</option>
+                                <option value="P2">High (P2)</option>
+                                <option value="P1">Urgent (P1)</option>
                             </select>
                         </div>
                     </div>
@@ -265,7 +309,7 @@ if ($action === 'list') {
                 </div>
                 <div class="d-flex justify-content-end">
                     <a href="?page=service-requests" class="btn btn-secondary me-2">Cancel</a>
-                    <button type="submit" name="add_request" class="btn btn-primary">Create Request</button>
+                    <button type="submit" name="add_request" class="btn btn-primary">Create Ticket</button>
                 </div>
             </form>
         </div>
@@ -277,7 +321,7 @@ if ($action === 'list') {
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">Service Request #<?php echo $request['id']; ?></h5>
+                    <h5 class="card-title">Service Ticket <?php echo htmlspecialchars($request['ticket_number']); ?></h5>
                     <div class="mt-2">
                         <?php echo get_status_badge($request['status']); ?>
                         <?php echo get_priority_badge($request['priority']); ?>
@@ -293,7 +337,7 @@ if ($action === 'list') {
                         </div>
                         <div class="col-md-6">
                             <h6>Service Details</h6>
-                            <p><strong>Type:</strong> <?php echo ucfirst(str_replace('_', ' ', $request['service_type'])); ?></p>
+                            <p><strong>Type:</strong> <?php echo ucfirst(str_replace('_', ' ', $request['service_category'])); ?></p>
                             <p><strong>Created:</strong> <?php echo format_datetime($request['created_at']); ?></p>
                             <?php if ($request['completed_at']): ?>
                                 <p><strong>Completed:</strong> <?php echo format_datetime($request['completed_at']); ?></p>
@@ -302,11 +346,11 @@ if ($action === 'list') {
                     </div>
                     
                     <h6>Location</h6>
-                    <p><?php echo nl2br(htmlspecialchars($request['location'])); ?></p>
+                    <p><?php echo nl2br(htmlspecialchars($request['service_address'])); ?></p>
                     
-                    <?php if ($request['description']): ?>
+                    <?php if ($request['issue_description']): ?>
                         <h6>Description</h6>
-                        <p><?php echo nl2br(htmlspecialchars($request['description'])); ?></p>
+                        <p><?php echo nl2br(htmlspecialchars($request['issue_description'])); ?></p>
                     <?php endif; ?>
                     
                     <?php if ($request['tech_first_name']): ?>
@@ -321,8 +365,8 @@ if ($action === 'list') {
                         <div class="col-md-6">
                             <h6>Cost Information</h6>
                             <p><strong>Estimated:</strong> <?php echo format_currency($request['estimated_cost']); ?></p>
-                            <?php if ($request['actual_cost'] > 0): ?>
-                                <p><strong>Actual:</strong> <?php echo format_currency($request['actual_cost']); ?></p>
+                            <?php if ($request['price_quoted'] > 0): ?>
+                                <p><strong>Quoted:</strong> <?php echo format_currency($request['price_quoted']); ?></p>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -337,7 +381,7 @@ if ($action === 'list') {
                     <h5 class="card-title">Actions</h5>
                 </div>
                 <div class="card-body">
-                    <?php if ($request['status'] === 'pending' && !$request['technician_id']): ?>
+                    <?php if (!$request['technician_id']): ?>
                         <!-- Assign Technician -->
                         <form method="POST" class="mb-3">
                             <label for="technician_id" class="form-label">Assign Technician</label>
@@ -352,40 +396,62 @@ if ($action === 'list') {
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <button type="submit" name="assign_technician" class="btn btn-success btn-sm w-100">
-                                Assign Technician
+                            <button type="submit" name="assign_technician" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-user-plus"></i> Assign Technician
                             </button>
                         </form>
                     <?php endif; ?>
                     
-                    <?php if ($request['technician_id'] && in_array($request['status'], ['assigned', 'in_progress'])): ?>
+                    <?php if ($request['technician_id'] && $request['status'] === 'created'): ?>
+                        <!-- Dispatch — separate explicit action -->
+                        <form method="POST" class="mb-3">
+                            <p class="text-muted" style="font-size:12px;margin-bottom:8px">
+                                <i class="fas fa-user"></i> Assigned: <?php echo htmlspecialchars($request['tech_first_name'] . ' ' . $request['tech_last_name']); ?>
+                            </p>
+                            <button type="submit" name="dispatch_ticket" class="btn btn-success btn-sm w-100">
+                                <i class="fas fa-paper-plane"></i> Dispatch
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                    
+                    <?php if ($request['technician_id'] && in_array($request['status'], ['dispatched', 'acknowledged', 'en_route', 'on_scene', 'in_progress'])): ?>
                         <!-- Update Status -->
                         <form method="POST">
                             <label for="status" class="form-label">Update Status</label>
                             <select class="form-select mb-2" name="status">
-                                <option value="assigned" <?php echo $request['status'] === 'assigned' ? 'selected' : ''; ?>>Assigned</option>
+                                <option value="dispatched" <?php echo $request['status'] === 'dispatched' ? 'selected' : ''; ?>>Dispatched</option>
+                                <option value="en_route" <?php echo $request['status'] === 'en_route' ? 'selected' : ''; ?>>En Route</option>
+                                <option value="on_scene" <?php echo $request['status'] === 'on_scene' ? 'selected' : ''; ?>>On Scene</option>
                                 <option value="in_progress" <?php echo $request['status'] === 'in_progress' ? 'selected' : ''; ?>>In Progress</option>
                                 <option value="completed">Completed</option>
                                 <option value="cancelled">Cancelled</option>
                             </select>
                             
-                            <label for="actual_cost" class="form-label">Actual Cost</label>
+                            <label for="actual_cost" class="form-label">Quoted Price</label>
                             <div class="input-group mb-2">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control" name="actual_cost" 
-                                       value="<?php echo $request['actual_cost']; ?>" step="0.01" min="0">
+                                       value="<?php echo $request['price_quoted']; ?>" step="0.01" min="0">
                             </div>
                             
                             <button type="submit" name="update_status" class="btn btn-primary btn-sm w-100">
-                                Update Request
+                                Update Ticket
                             </button>
                         </form>
                     <?php endif; ?>
                     
-                    <?php if ($request['status'] === 'completed' && $request['actual_cost'] > 0): ?>
+                    <?php if ($request['status'] === 'completed' && $request['price_quoted'] > 0): ?>
                         <a href="?page=invoices&action=create&request_id=<?php echo $request['id']; ?>" 
                            class="btn btn-success w-100">
                             <i class="fas fa-file-invoice"></i> Create Invoice
+                        </a>
+                    <?php endif; ?>
+                    
+                    <!-- Create Estimate from this Service Request -->
+                    <?php if (in_array($request['status'], ['created', 'dispatched', 'acknowledged', 'en_route', 'on_scene', 'in_progress'])): ?>
+                        <a href="?page=estimates&action=create&sr_id=<?php echo $request['id']; ?>" 
+                           class="btn btn-outline-primary w-100 <?php echo ($request['status'] === 'completed') ? 'mt-2' : ''; ?>">
+                            <i class="fas fa-file-invoice"></i> Create Estimate
                         </a>
                     <?php endif; ?>
                 </div>

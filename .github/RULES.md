@@ -169,3 +169,6 @@ Host: `localhost` | User: `root` | Pass: `pass` | DB: `roadside_assistance`
 7. ALWAYS use JetBrains Mono for data values (IDs, prices, dates)
 8. ALWAYS use DM Sans for UI text (labels, headings, body)
 9. ALWAYS use prepared statements for SQL queries
+10. NEVER dispatch on technician assignment — assigning a technician only sets `technician_id`. Dispatching is a separate explicit action that sets `status='dispatched'` and `dispatched_at`. A technician's status changes to `busy` only upon dispatch, not assignment.
+11. ALWAYS prefer simple, obvious solutions over clever ones — straightforward code that's easy to read, debug, and modify. No abstractions without clear need.
+12. ALWAYS keep files small (<200 lines) and organized — split large files into focused modules. One clear purpose per file.

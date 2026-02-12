@@ -399,8 +399,8 @@ switch ($action) {
             $nameParts = explode(' ', trim($_POST['customer_name']), 2);
             $firstName = $nameParts[0] ?? '';
             $lastName = $nameParts[1] ?? '';
-            $stmt = $pdo->prepare("INSERT INTO customers (first_name, last_name, phone, email, address) VALUES (?,?,?,?,?)");
-            $stmt->execute([$firstName, $lastName, $_POST['customer_phone'], $_POST['customer_email'] ?? null, $_POST['service_address']]);
+            $stmt = $pdo->prepare("INSERT INTO customers (first_name, last_name, phone, email) VALUES (?,?,?,?)");
+            $stmt->execute([$firstName, $lastName, $_POST['customer_phone'], $_POST['customer_email'] ?? null]);
             $customerId = $pdo->lastInsertId();
         }
 
@@ -495,18 +495,44 @@ switch ($action) {
         echo json_encode(['success' => true, 'data' => ['id' => $ticketId, 'ticket_number' => $ticketNum]]);
         break;
 
-    // ── Dispatch ticket ──────────────────────────────────────────────
-    case 'dispatch':
+    // ── Assign technician (does NOT dispatch) ────────────────────────
+    case 'assign_technician':
         $ticketId = intval($_POST['ticket_id'] ?? 0);
         $techId = intval($_POST['technician_id'] ?? 0);
         if (!$ticketId || !$techId) {
             echo json_encode(['success' => false, 'error' => 'Ticket ID and Technician ID required']);
             break;
         }
-        $stmt = $pdo->prepare("UPDATE service_tickets SET technician_id = ?, status = 'dispatched', dispatched_at = NOW() WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE service_tickets SET technician_id = ? WHERE id = ?");
         $stmt->execute([$techId, $ticketId]);
+        ticket_log($pdo, $ticketId, 'assigned', null, null, "Technician #{$techId} assigned");
+        echo json_encode(['success' => true]);
+        break;
+
+    // ── Dispatch ticket (separate from assignment) ────────────────────
+    case 'dispatch':
+        $ticketId = intval($_POST['ticket_id'] ?? 0);
+        if (!$ticketId) {
+            echo json_encode(['success' => false, 'error' => 'Ticket ID required']);
+            break;
+        }
+        // Get assigned technician
+        $stmt = $pdo->prepare("SELECT technician_id FROM service_tickets WHERE id = ?");
+        $stmt->execute([$ticketId]);
+        $ticket = $stmt->fetch();
+        $techId = intval($_POST['technician_id'] ?? ($ticket['technician_id'] ?? 0));
+        if (!$techId) {
+            echo json_encode(['success' => false, 'error' => 'No technician assigned. Assign a technician before dispatching.']);
+            break;
+        }
+        // If technician was passed but not yet assigned, assign first
+        if (!$ticket['technician_id']) {
+            $pdo->prepare("UPDATE service_tickets SET technician_id = ? WHERE id = ?")->execute([$techId, $ticketId]);
+        }
+        $stmt = $pdo->prepare("UPDATE service_tickets SET status = 'dispatched', dispatched_at = NOW() WHERE id = ?");
+        $stmt->execute([$ticketId]);
         $pdo->prepare("UPDATE technicians SET status = 'busy' WHERE id = ?")->execute([$techId]);
-        ticket_log($pdo, $ticketId, 'dispatched', null, 'dispatched', "Assigned to tech #{$techId}");
+        ticket_log($pdo, $ticketId, 'dispatched', null, 'dispatched', "Dispatched to tech #{$techId}");
         echo json_encode(['success' => true]);
         break;
 
