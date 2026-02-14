@@ -1,0 +1,117 @@
+/* ── Service Intake — Controls: shorthand, safety, summary, submit, quick entry ── */
+
+/* Shorthand hint */
+.intake-shorthand-hint { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+.intake-shorthand-hint code { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: rgba(43,94,167,0.1); padding: 1px 5px; border-radius: 3px; color: var(--navy-300); }
+.intake-shorthand-suggestion { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); border-radius: 4px; font-size: 12px; color: var(--green-500); margin: 4px 4px 0 0; cursor: pointer; }
+
+/* Safety indicator */
+.intake-safety-warn { padding: 10px 14px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 6px; margin-top: 8px; display: none; }
+.intake-safety-warn.visible { display: flex; align-items: center; gap: 10px; }
+.intake-safety-warn i { color: var(--red-500); font-size: 16px; }
+.intake-safety-warn span { font-size: 12px; color: var(--red-500); font-weight: 500; }
+
+/* Summary panel */
+.intake-summary-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 12px; }
+.intake-summary-item .lbl { color: #A8B0C4; }
+.intake-summary-item .val { color: #F0F2F8; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+.intake-summary-total { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; font-weight: 700; }
+.intake-summary-total .val { color: var(--green-500); font-family: 'JetBrains Mono', monospace; text-shadow: 0 0 12px rgba(34,197,94,0.3); }
+
+/* Submit bar */
+.intake-submit-bar {
+    position: sticky; bottom: 0;
+    background: linear-gradient(180deg, var(--bg-surface) 0%, rgba(18,21,27,0.98) 100%);
+    border-top: 2px solid var(--navy-500);
+    padding: 16px 20px;
+    margin: 24px -28px -28px -28px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    z-index: 10;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+}
+.intake-submit-bar .status-text { font-size: 12px; color: #BCC3D4; }
+.intake-submit-bar .actions { display: flex; gap: 10px; }
+
+/* Hazard checkboxes */
+.intake-hazard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+@media (max-width: 768px) { .intake-hazard-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* Conditional sections hidden by default */
+.intake-conditional { display: none; }
+.intake-conditional.visible { display: block; }
+
+/* Vehicle subfields */
+.intake-vehicle-display { padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: 6px; margin-top: 8px; }
+.intake-vehicle-display .make-model { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.intake-vehicle-display .details { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── Quick Entry Card ─────────────────────────────────────────────── */
+.intake-quick-entry {
+    background:
+        linear-gradient(135deg, rgba(43,94,167,0.10) 0%, rgba(18,21,27,0.95) 60%, rgba(43,94,167,0.06) 100%),
+        linear-gradient(160deg, var(--bg-surface) 0%, rgba(18,21,27,0.9) 100%);
+    border: 2px solid rgba(43,94,167,0.35);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 20px rgba(43,94,167,0.08);
+    position: relative;
+}
+.intake-quick-entry::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--navy-500), transparent);
+}
+.intake-quick-entry-head {
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid rgba(43,94,167,0.15);
+    background: rgba(0,0,0,0.15);
+}
+.intake-quick-entry-head .qe-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: rgba(43,94,167,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--navy-300); font-size: 15px;
+    box-shadow: 0 0 12px rgba(43,94,167,0.15);
+}
+.intake-quick-entry-head h2 {
+    font-size: 15px; font-weight: 700; margin: 0;
+    color: var(--navy-300); letter-spacing: -0.3px;
+}
+.intake-quick-entry-head .qe-sub {
+    font-size: 11px; color: var(--text-secondary); margin-top: 1px;
+}
+.intake-quick-entry-body {
+    padding: 16px 20px 20px;
+}
+.intake-quick-entry-body .row { margin-bottom: 0; }
+.intake-quick-entry-body .intake-label { font-size: 11px; }
+
+/* Quick Entry category mini-grid */
+.qe-cat-grid {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+}
+.qe-cat-pill {
+    padding: 5px 12px; border-radius: 20px;
+    border: 1px solid var(--border-medium);
+    font-size: 11px; font-weight: 600;
+    color: var(--text-secondary); cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(0,0,0,0.15);
+    display: flex; align-items: center; gap: 5px;
+}
+.qe-cat-pill:hover { border-color: var(--navy-500); color: var(--navy-300); background: rgba(43,94,167,0.08); }
+.qe-cat-pill.selected { border-color: var(--navy-500); color: var(--navy-300); background: rgba(43,94,167,0.15); box-shadow: 0 0 8px rgba(43,94,167,0.12); }
+.qe-cat-pill i { font-size: 10px; }
+
+/* Mirror sync indicator */
+.intake-input.synced, .intake-textarea.synced {
+    border-color: rgba(43,94,167,0.4) !important;
+    animation: qeSyncFlash 0.4s ease;
+}
+@keyframes qeSyncFlash {
+    0% { box-shadow: 0 0 0 3px rgba(43,94,167,0.25); }
+    100% { box-shadow: none; }
+}

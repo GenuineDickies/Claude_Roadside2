@@ -1,0 +1,10 @@
+.inv-header { background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-secondary) 100%); border-bottom: 2px solid var(--navy-500); padding: 20px 28px; margin: -28px -28px 24px -28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.inv-header h1 { font-size: 24px; font-weight: 700; color: var(--navy-300); letter-spacing: -0.5px; margin: 0; }
+.inv-header .subtitle { font-size: 13px; color: var(--text-secondary); margin: 2px 0 0; }
+
+.inv-amount-card { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 10px; padding: 16px; text-align: center; }
+.inv-amount-card .lbl { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
+.inv-amount-card .val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; margin-top: 4px; }
+
+.inv-payment-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
+.inv-payment-row:last-child { border-bottom: none; }

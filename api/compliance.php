@@ -4,8 +4,7 @@
  * User records what they need, whether they have it, and when it expires.
  * Non-blocking: just gentle reminders, never prevents work.
  */
-header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/api_bootstrap.php';
 
 $pdo->exec("CREATE TABLE IF NOT EXISTS compliance_items (
     id INT AUTO_INCREMENT PRIMARY KEY,

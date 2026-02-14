@@ -1,0 +1,76 @@
+/* ── Service Intake — Layout: page bg, header, grid, sidebar, lookup ── */
+
+/* Textured page background — subtle dot grid overlay */
+.rr-content:has(.intake-header) {
+    background:
+        radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(180deg, var(--bg-primary) 0%, #0A0C10 100%);
+    background-size: 20px 20px, 100% 100%;
+}
+
+.intake-header {
+    background:
+        linear-gradient(135deg, rgba(43,94,167,0.08) 0%, rgba(18,21,27,0.95) 50%, rgba(43,94,167,0.04) 100%),
+        linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-secondary) 100%);
+    border-bottom: 2px solid var(--navy-500);
+    padding: 20px 28px;
+    margin: -28px -28px 24px -28px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.intake-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+        repeating-linear-gradient(90deg, rgba(43,94,167,0.03) 0px, rgba(43,94,167,0.03) 1px, transparent 1px, transparent 60px),
+        repeating-linear-gradient(0deg, rgba(43,94,167,0.03) 0px, rgba(43,94,167,0.03) 1px, transparent 1px, transparent 60px);
+    pointer-events: none;
+}
+.intake-header-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.intake-header h1 { font-size: 24px; font-weight: 700; color: var(--navy-300); letter-spacing: -0.5px; margin: 0; }
+.intake-header .subtitle { font-size: 13px; color: #A8B0C4; margin: 2px 0 0; }
+.intake-header-actions { display: flex; gap: 10px; align-items: center; position: relative; z-index: 1; }
+
+/* Rapid Dispatch toggle */
+.rapid-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); cursor: pointer; transition: all 0.2s; }
+.rapid-toggle:hover { background: rgba(239,68,68,0.12); }
+.rapid-toggle.active { background: rgba(239,68,68,0.18); border-color: var(--red-500); }
+.rapid-toggle .label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--red-500); }
+.rapid-toggle input { display: none; }
+.rapid-toggle .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-tertiary); transition: all 0.2s; }
+.rapid-toggle.active .dot { background: var(--red-500); box-shadow: 0 0 8px rgba(239,68,68,0.5); }
+
+/* Layout */
+.intake-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+@media (max-width: 992px) { .intake-layout { grid-template-columns: 1fr; } .intake-sidebar-right { display: none; } }
+
+/* Sidebar panels */
+.intake-sidebar-left, .intake-sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+.intake-panel {
+    background: linear-gradient(160deg, var(--bg-surface) 0%, rgba(18,21,27,0.9) 100%);
+    border: 1px solid var(--border-medium);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.intake-panel-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,0.15);
+}
+.intake-panel-head h3 { font-size: 13px; font-weight: 600; margin: 0; color: #BCC3D4; text-transform: uppercase; letter-spacing: 0.5px; }
+.intake-panel-body { padding: 12px 16px; }
+
+/* Customer lookup */
+.intake-search { position: relative; }
+.intake-search input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: 6px; padding: 8px 12px 8px 32px; color: var(--text-primary); font-size: 13px; transition: all 0.2s; }
+.intake-search input:focus { border-color: var(--navy-400); outline: none; box-shadow: 0 0 0 3px rgba(43,94,167,0.15), 0 0 12px rgba(43,94,167,0.08); }
+.intake-search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 12px; }
+.intake-search-results { margin-top: 8px; max-height: 300px; overflow-y: auto; }
+.intake-cust-card { padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; margin-bottom: 6px; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.1); }
+.intake-cust-card:hover { border-color: var(--navy-500); background: rgba(43,94,167,0.06); box-shadow: 0 0 10px rgba(43,94,167,0.1); }
+.intake-cust-card .name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.intake-cust-card .phone { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: #A8B0C4; }
+.intake-cust-card .meta { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }

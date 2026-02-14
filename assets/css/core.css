@@ -1,0 +1,103 @@
+/* ══════════════════════════════════════════════════════════════
+   RoadRunner Admin — CSS Variables & Base Styles
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── CSS Variables ────────────────────────────────────────── */
+:root {
+    /* Backgrounds */
+    --bg-primary: #0C0E12;
+    --bg-secondary: #12151B;
+    --bg-surface: #181C24;
+    --bg-surface-hover: #1E2330;
+
+    /* Borders */
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-medium: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.16);
+
+    /* Text */
+    --text-primary: #F0F3F9;
+    --text-secondary: #B0B8CC;
+    --text-tertiary: #7E8799;
+
+    /* Navy = UI chrome ONLY */
+    --navy-500: #2B5EA7;
+    --navy-400: #3B7DD8;
+    --navy-300: #5A9AE6;
+    --navy-600: #234B78;
+    --navy-700: #1A3A5C;
+
+    /* Signal colors = Status ONLY */
+    --amber-500: #F59E0B;
+    --green-500: #22C55E;
+    --red-500: #EF4444;
+    --blue-500: #3B82F6;
+    --purple-500: #A855F7;
+
+    /* Purple-Blue Accent System */
+    --accent-purple: #7C3AED;
+    --accent-purple-light: #A78BFA;
+    --accent-purple-dark: #5B21B6;
+    --accent-blue: #2563EB;
+    --accent-blue-light: #60A5FA;
+    --accent-blue-dark: #1D4ED8;
+    --accent-glow-purple: rgba(124, 58, 237, 0.15);
+    --accent-glow-blue: rgba(37, 99, 235, 0.12);
+    --accent-glow-mix: rgba(99, 77, 237, 0.10);
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-size: 14px; }
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+/* ── Ambient Lighting Layer ───────────────────────────────── */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        radial-gradient(ellipse 800px 600px at 15% 10%, rgba(124, 58, 237, 0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 800px at 85% 80%, rgba(37, 99, 235, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(99, 77, 237, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+    animation: ambientShift 30s ease-in-out infinite alternate;
+}
+
+@keyframes ambientShift {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+a { color: var(--navy-300); text-decoration: none; }
+a:hover { color: var(--navy-400); }
+
+::selection { background: rgba(43,94,167,0.3); color: #fff; }
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Data Values Font ─────────────────────────────────────── */
+.mono, .font-mono { font-family: 'JetBrains Mono', monospace; }

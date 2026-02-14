@@ -9,7 +9,7 @@ function sanitize_input($data) {
 }
 
 function generate_invoice_number() {
-    return 'INV-' . date('Y') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    return 'INV-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 }
 
 function format_currency($amount) {
@@ -32,6 +32,27 @@ function format_date($date) {
 
 function format_datetime($datetime) {
     return date('M d, Y g:i A', strtotime($datetime));
+}
+
+function format_ticket_number(?string $ticketNumber): string {
+    if (!$ticketNumber) {
+        return '';
+    }
+
+    // Already canonical: RR-YYMMDD-001-01
+    if (preg_match('/^(RR|SR)-(\d{6})-(\d{3})-(\d{2})$/', $ticketNumber)) {
+        return $ticketNumber;
+    }
+
+    // Legacy: RR-YYYYMMDD-0001 (8-digit date, 4-digit seq, no version)
+    if (preg_match('/^(RR|SR)-(\d{8})-(\d{4})$/', $ticketNumber, $matches)) {
+        $prefix = $matches[1];
+        $date = substr($matches[2], 2); // YYYYMMDD -> YYMMDD
+        $sequence = str_pad((string)intval($matches[3]), 3, '0', STR_PAD_LEFT);
+        return sprintf('%s-%s-%s-01', $prefix, $date, $sequence);
+    }
+
+    return $ticketNumber;
 }
 
 function get_status_badge($status) {

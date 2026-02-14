@@ -1,0 +1,80 @@
+/* ── Service Request View — Scoped Styles ───────────────────────── */
+.sr-ticket-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+}
+.sr-ticket-id {
+    font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700;
+    color: var(--accent-purple-light, #A78BFA); letter-spacing: -0.3px;
+}
+.sr-ticket-badges { display: flex; gap: 8px; margin-top: 6px; }
+.sr-ticket-meta {
+    text-align: right; font-size: 12px; color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+}
+.sr-info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+}
+@media (max-width: 768px) { .sr-info-grid { grid-template-columns: 1fr; } }
+.sr-info-card {
+    background: linear-gradient(145deg, rgba(124,58,237,0.03), rgba(30,35,48,0.6));
+    border: 1px solid rgba(124,58,237,0.1);
+    border-radius: 10px; padding: 16px 18px;
+    position: relative; overflow: hidden;
+}
+.sr-info-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, rgba(124,58,237,0.2), rgba(37,99,235,0.15), transparent);
+}
+.sr-info-card h6 {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--accent-purple-light, #A78BFA); margin: 0 0 10px;
+    display: flex; align-items: center; gap: 8px;
+}
+.sr-info-card h6 i { font-size: 12px; opacity: 0.7; }
+.sr-info-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 5px 0; font-size: 13px; color: var(--text-primary);
+}
+.sr-info-row i { width: 16px; text-align: center; font-size: 12px; color: var(--text-tertiary); flex-shrink: 0; }
+.sr-info-row .sr-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-tertiary); min-width: 70px; }
+.sr-info-row .sr-value { color: var(--text-primary); }
+.sr-info-row .sr-value-mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); }
+.sr-info-row .sr-name { font-weight: 600; font-size: 15px; color: var(--text-primary); }
+.sr-section {
+    background: linear-gradient(145deg, rgba(124,58,237,0.02), rgba(30,35,48,0.4));
+    border: 1px solid rgba(124,58,237,0.08);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
+}
+.sr-section h6 {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--accent-purple-light, #A78BFA); margin: 0 0 8px;
+    display: flex; align-items: center; gap: 8px;
+}
+.sr-section h6 i { font-size: 12px; opacity: 0.7; }
+.sr-section p { margin: 0; font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+.sr-action-group { padding: 14px 0; border-bottom: 1px solid var(--border-subtle); }
+.sr-action-group:last-child { border-bottom: none; padding-bottom: 0; }
+.sr-action-group:first-child { padding-top: 0; }
+.sr-action-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-tertiary); margin-bottom: 8px; }
+.sr-tech-badge {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15);
+    border-radius: 8px; margin-bottom: 12px;
+}
+.sr-tech-badge .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-purple-dark, #5B21B6), var(--accent-blue, #2563EB));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.sr-tech-badge .name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.sr-tech-badge .phone { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-tertiary); }
+.sr-cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sr-cost-item {
+    text-align: center; padding: 12px;
+    background: rgba(124,58,237,0.04); border: 1px solid rgba(124,58,237,0.08); border-radius: 8px;
+}
+.sr-cost-item .label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-tertiary); margin-bottom: 4px; }
+.sr-cost-item .amount { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text-primary); }

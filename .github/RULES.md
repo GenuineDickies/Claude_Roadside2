@@ -8,6 +8,27 @@ PHP 8 + MySQL/PDO | Bootstrap 5.1.3 | React 18 CDN (catalog only) | Font Awesome
 - **UI text:** DM Sans (labels, headings, nav, body)
 - **Data values:** JetBrains Mono (IDs, prices, dates, codes, phone numbers)
 
+## Document Numbering — PREFIX-YYMMDD-SEQ-VER
+
+All document IDs follow a **4-part canonical format**: `PREFIX-YYMMDD-SEQ-VER`
+
+| Part | Width | Meaning |
+|------|-------|---------|
+| PREFIX | 2-3 chars | Document type: `RR` (ticket), `EST` (estimate), `WO` (work order), `CO` (change order), `INV` (invoice), `RCT` (receipt) |
+| YYMMDD | 6 digits | Date created (2-digit year) |
+| SEQ | 3 digits | Sequential number for that day, zero-padded |
+| VER | 2 digits | Version of that specific document, starts at `01` |
+
+**Examples:** `RR-260213-001-01`, `EST-260213-003-02`, `WO-260213-001-01`
+
+**Rules:**
+- New documents always start at version `-01`
+- Editing creates a new version (old version archived as read-only snapshot)
+- Version bumps increment VER only, SEQ stays the same: `RR-260213-001-01` → `RR-260213-001-02`
+- Generator: `includes/id_helpers.php` — `generate_ticket_number()`, `generate_doc_id()`, `bump_ticket_number_version()`
+- Display: `includes/functions.php` — `format_ticket_number()` normalizes legacy formats
+- Versioned documents are **immutable once archived** — only the current version is editable
+
 ## Color Rules
 
 **Navy = UI chrome ONLY** (buttons, links, nav, focus, headers). NEVER for status.
@@ -172,3 +193,5 @@ Host: `localhost` | User: `root` | Pass: `pass` | DB: `roadside_assistance`
 10. NEVER dispatch on technician assignment — assigning a technician only sets `technician_id`. Dispatching is a separate explicit action that sets `status='dispatched'` and `dispatched_at`. A technician's status changes to `busy` only upon dispatch, not assignment.
 11. ALWAYS prefer simple, obvious solutions over clever ones — straightforward code that's easy to read, debug, and modify. No abstractions without clear need.
 12. ALWAYS keep files small (<200 lines) and organized — split large files into focused modules. One clear purpose per file.
+13. ALWAYS use canonical document numbering `PREFIX-YYMMDD-SEQ-VER` — never store legacy formats. Use `generate_ticket_number()` / `generate_doc_id()` from `includes/id_helpers.php`.
+14. NEVER modify archived document versions — editing creates a new version; past versions are immutable read-only snapshots stored in `service_ticket_versions`.

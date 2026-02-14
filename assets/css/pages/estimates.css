@@ -1,0 +1,98 @@
+/* ── Estimate Page — Scoped Styles ───────────────────────────────── */
+.est-header {
+    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-secondary) 100%);
+    border-bottom: 2px solid var(--navy-500);
+    padding: 20px 28px; margin: -28px -28px 24px -28px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.est-header h1 { font-size: 24px; font-weight: 700; color: var(--navy-300); letter-spacing: -0.5px; margin: 0; }
+.est-header .subtitle { font-size: 13px; color: var(--text-secondary); margin: 2px 0 0; }
+
+/* Status lifecycle bar */
+.est-lifecycle { display: flex; gap: 4px; margin-bottom: 20px; }
+.est-lifecycle-step { flex: 1; padding: 8px 12px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 6px; color: var(--text-tertiary); }
+.est-lifecycle-step.active { background: rgba(43,94,167,0.12); border-color: var(--navy-500); color: var(--navy-300); }
+.est-lifecycle-step.done { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: var(--green-500); }
+
+/* Breadcrumb chain */
+.doc-chain { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; font-size: 12px; }
+.doc-chain a { color: var(--navy-300); text-decoration: none; padding: 4px 10px; background: rgba(43,94,167,0.08); border-radius: 4px; }
+.doc-chain a:hover { background: rgba(43,94,167,0.15); }
+.doc-chain .sep { color: var(--text-tertiary); }
+.doc-chain .current { color: var(--text-primary); font-weight: 600; padding: 4px 10px; background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 4px; }
+
+/* Inherited info card */
+.est-inherited { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
+.est-inherited h3 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); margin: 0 0 10px; }
+.est-inherited-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.est-inherited-item .lbl { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.3px; }
+.est-inherited-item .val { font-size: 13px; color: var(--text-primary); font-weight: 500; margin-top: 2px; }
+
+/* Line items table */
+.est-line-items { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.est-line-items th { background: var(--bg-secondary); padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); border-bottom: 1px solid var(--border-medium); text-align: left; }
+.est-line-items th:last-child { text-align: right; }
+.est-line-items td { padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; vertical-align: middle; }
+.est-line-items td:last-child { text-align: right; }
+.est-line-items .money { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.est-line-items .type-badge { font-size: 10px; padding: 2px 8px; border-radius: 3px; text-transform: uppercase; font-weight: 600; }
+.est-line-items .type-labor { background: rgba(59,130,246,0.1); color: var(--blue-500); }
+.est-line-items .type-parts { background: rgba(168,85,247,0.1); color: var(--purple-500); }
+.est-line-items .type-service_fee { background: rgba(34,197,94,0.1); color: var(--green-500); }
+.est-line-items .type-tow_mileage { background: rgba(245,158,11,0.1); color: var(--amber-500); }
+.est-line-items tr:hover { background: var(--bg-surface-hover); }
+.est-line-items .remove-btn { color: var(--text-tertiary); cursor: pointer; font-size: 12px; opacity: 0.5; }
+.est-line-items .remove-btn:hover { color: var(--red-500); opacity: 1; }
+
+/* Totals */
+.est-totals { margin-top: 16px; margin-left: auto; width: 320px; }
+.est-total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+.est-total-row.grand { padding: 12px 0; border-top: 2px solid var(--navy-500); font-size: 16px; font-weight: 700; margin-top: 4px; }
+.est-total-row .money { font-family: 'JetBrains Mono', monospace; }
+
+/* Form elements — scoped to estimates page */
+.est-label { font-size: 12px; font-weight: 600; color: #BCC3D4; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+.est-label .req { color: var(--red-500); }
+.est-input, .est-select, .est-textarea {
+    width: 100%; background: var(--bg-primary); border: 1px solid var(--border-medium);
+    border-radius: 6px; padding: 8px 12px; color: var(--text-primary); font-size: 13px;
+    font-family: 'DM Sans', sans-serif; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.est-input:focus, .est-select:focus, .est-textarea:focus {
+    border-color: var(--navy-400); outline: none; box-shadow: 0 0 0 3px rgba(43,94,167,0.15);
+}
+.est-input.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.est-textarea { resize: vertical; min-height: 60px; }
+.est-select { cursor: pointer; }
+.est-help { display: block; font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+
+/* Add item form */
+.est-add-row { display: grid; grid-template-columns: 140px 1fr 80px 100px 100px 36px; gap: 8px; align-items: end; margin-top: 12px; padding: 12px; background: var(--bg-primary); border: 1px dashed var(--border-medium); border-radius: 6px; }
+@media (max-width: 768px) { .est-add-row { grid-template-columns: 1fr 1fr; } }
+.est-add-row label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 2px; display: block; }
+.est-add-row input, .est-add-row select { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 4px; padding: 6px 8px; color: var(--text-primary); font-size: 12px; width: 100%; }
+.est-add-row input:focus, .est-add-row select:focus { border-color: var(--navy-400); outline: none; }
+
+/* Catalog panel */
+.est-catalog-panel { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none; }
+.est-catalog-panel.open { display: block; }
+.est-catalog-tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px; }
+.est-catalog-tab { padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer; border: 1px solid transparent; border-bottom: none; background: transparent; }
+.est-catalog-tab:hover { color: var(--text-primary); }
+.est-catalog-tab.active { color: var(--navy-300); background: rgba(43,94,167,0.08); border-color: var(--border-medium); }
+.est-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
+.est-catalog-item { background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: all 0.15s; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.est-catalog-item:hover { border-color: var(--navy-400); background: var(--bg-surface-hover); transform: translateY(-1px); }
+.est-catalog-item .item-info { flex: 1; min-width: 0; }
+.est-catalog-item .item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.est-catalog-item .item-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.est-catalog-item .item-price { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--navy-300); white-space: nowrap; }
+.est-catalog-search { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-medium); border-radius: 6px; padding: 8px 12px 8px 34px; color: var(--text-primary); font-size: 13px; margin-bottom: 12px; }
+.est-catalog-search:focus { border-color: var(--navy-400); outline: none; }
+
+/* Approval card */
+.est-approval { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 10px; padding: 20px; margin-top: 20px; }
+.est-approval h3 { font-size: 14px; font-weight: 600; margin: 0 0 12px; color: var(--text-primary); }
+
+/* List table */
+.est-list-status { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }

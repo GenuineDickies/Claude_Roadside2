@@ -1,0 +1,99 @@
+/* ── Director Badges, Buttons, Kanban, Activity, Modals ────── */
+
+/* Badges */
+.director-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 4px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.director-badge.missing   { background: rgba(239,68,68,0.12); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+.director-badge.draft     { background: rgba(245,158,11,0.12); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
+.director-badge.review    { background: rgba(59,130,246,0.12); color: #3B82F6; border: 1px solid rgba(59,130,246,0.3); }
+.director-badge.approved  { background: rgba(34,197,94,0.12); color: #22C55E; border: 1px solid rgba(34,197,94,0.3); }
+.director-badge.outdated  { background: rgba(168,85,247,0.12); color: #A855F7; border: 1px solid rgba(168,85,247,0.3); }
+.director-badge.todo      { background: rgba(255,255,255,0.06); color: var(--text-secondary); border: 1px solid var(--border-medium); }
+.director-badge.doing     { background: rgba(59,130,246,0.12); color: #3B82F6; border: 1px solid rgba(59,130,246,0.3); }
+.director-badge.blocked   { background: rgba(239,68,68,0.12); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+.director-badge.done      { background: rgba(34,197,94,0.12); color: #22C55E; border: 1px solid rgba(34,197,94,0.3); }
+.director-badge.cancelled { background: rgba(255,255,255,0.06); color: var(--text-tertiary); border: 1px solid var(--border-subtle); text-decoration: line-through; }
+.director-badge.proposed  { background: rgba(245,158,11,0.12); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
+.director-badge.accepted  { background: rgba(34,197,94,0.12); color: #22C55E; border: 1px solid rgba(34,197,94,0.3); }
+.director-badge.deprecated { background: rgba(255,255,255,0.06); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+.director-badge.superseded { background: rgba(168,85,247,0.12); color: #A855F7; border: 1px solid rgba(168,85,247,0.3); }
+.director-badge.pending   { background: rgba(245,158,11,0.12); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
+.director-badge.passing   { background: rgba(34,197,94,0.12); color: #22C55E; border: 1px solid rgba(34,197,94,0.3); }
+.director-badge.failing   { background: rgba(239,68,68,0.12); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+.director-badge.released  { background: rgba(59,130,246,0.12); color: #3B82F6; border: 1px solid rgba(59,130,246,0.3); }
+.director-badge.critical  { background: rgba(239,68,68,0.12); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+.director-badge.high      { background: rgba(245,158,11,0.12); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
+.director-badge.medium    { background: rgba(59,130,246,0.12); color: #3B82F6; border: 1px solid rgba(59,130,246,0.3); }
+.director-badge.low       { background: rgba(255,255,255,0.06); color: var(--text-secondary); border: 1px solid var(--border-medium); }
+
+/* Buttons */
+.director-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.15s ease;
+    font-family: 'DM Sans', sans-serif;
+}
+.director-btn.primary { background: linear-gradient(135deg, #234B78, #2B5EA7); color: #fff; }
+.director-btn.primary:hover { background: linear-gradient(135deg, #2B5EA7, #3B7DD8); transform: translateY(-1px); }
+.director-btn.secondary { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border-medium); }
+.director-btn.secondary:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.director-btn.sm { padding: 4px 10px; font-size: 12px; }
+.director-btn.danger { background: rgba(239,68,68,0.15); color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+.director-btn.danger:hover { background: rgba(239,68,68,0.25); }
+
+/* Status select */
+.director-status-select {
+    background: var(--bg-surface); color: var(--text-primary);
+    border: 1px solid var(--border-medium); border-radius: 4px;
+    padding: 4px 8px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer;
+}
+.director-status-select:focus { outline: none; border-color: var(--navy-400); }
+
+/* Build Queue kanban */
+.director-kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; min-height: 300px; }
+.director-kanban-col { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 0; display: flex; flex-direction: column; }
+.director-kanban-header {
+    padding: 12px 14px; font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.director-kanban-header .count { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 10px; }
+.director-kanban-body { padding: 10px; flex: 1; overflow-y: auto; max-height: 500px; }
+.director-task-card { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: default; transition: border-color 0.15s ease; }
+.director-task-card:hover { border-color: var(--border-strong); }
+.director-task-card .task-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.director-task-card .task-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-tertiary); }
+
+/* Activity feed */
+.director-activity { list-style: none; padding: 0; margin: 0; }
+.director-activity li { padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); display: flex; gap: 12px; align-items: flex-start; font-size: 13px; }
+.director-activity li:hover { background: var(--bg-surface-hover); }
+.director-activity .act-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.director-activity .act-icon.artifact { background: rgba(43,94,167,0.15); color: var(--navy-300); }
+.director-activity .act-icon.task     { background: rgba(59,130,246,0.15); color: #3B82F6; }
+.director-activity .act-icon.decision { background: rgba(168,85,247,0.15); color: #A855F7; }
+.director-activity .act-icon.release  { background: rgba(34,197,94,0.15); color: #22C55E; }
+.director-activity .act-icon.gate     { background: rgba(245,158,11,0.15); color: #FBBF24; }
+.director-activity .act-time { font-size: 11px; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.director-activity .act-text { flex: 1; color: var(--text-secondary); }
+.director-activity .act-text strong { color: var(--text-primary); font-weight: 600; }
+
+/* Modal overrides */
+.director-modal .modal-content { background: var(--bg-surface); border: 1px solid var(--border-medium); border-radius: 14px; color: var(--text-primary); }
+.director-modal .modal-header { border-bottom: 1px solid var(--border-subtle); padding: 18px 20px; }
+.director-modal .modal-header .modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.director-modal .modal-header .btn-close { filter: invert(1); opacity: 0.5; }
+.director-modal .modal-body { padding: 20px; }
+.director-modal .modal-footer { border-top: 1px solid var(--border-subtle); padding: 14px 20px; }
+.director-modal label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+.director-modal .form-control, .director-modal .form-select { background: var(--bg-secondary); border: 1px solid var(--border-medium); color: var(--text-primary); border-radius: 6px; font-size: 13px; }
+.director-modal .form-control:focus, .director-modal .form-select:focus { border-color: var(--navy-400); box-shadow: 0 0 0 2px rgba(43,94,167,0.25); background: var(--bg-secondary); color: var(--text-primary); }
+.director-modal textarea.form-control { min-height: 80px; }
+
+/* Responsive */
+@media (max-width: 992px) { .director-kanban { grid-template-columns: repeat(2, 1fr); } .director-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 576px) { .director-kanban { grid-template-columns: 1fr; } .director-stats { grid-template-columns: 1fr; } }

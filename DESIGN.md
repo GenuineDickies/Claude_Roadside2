@@ -1316,9 +1316,10 @@ const store = {
 // Dates: stored as ISO strings
 // Display: formatDate() or formatRelativeTime()
 
-// IDs follow pattern: PREFIX-NNNN
-// Jobs: RA-4821, Invoices: INV-3392, Estimates: EST-221
-// Services: SVC-001, Parts: PRT-0001, Payments: PAY-1001
+// IDs follow pattern: PREFIX-YYMMDD-SEQ-VER (4-part canonical format)
+// Tickets: RR-260213-001-01, Estimates: EST-260213-003-02, Work Orders: WO-260213-001-01
+// Invoices: INV-260213-001-01, Receipts: RCT-260213-001-01, Change Orders: CO-260213-001-01
+// VER increments on edit (old version archived as read-only snapshot)
 ```
 
 ### Adding a New Module (Step by Step)

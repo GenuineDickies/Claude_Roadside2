@@ -23,7 +23,8 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+    error_log('Database connection failed: ' . $e->getMessage());
+    die('Database connection failed. Check server logs for details.');
 }
 
 // Create database if it doesn't exist
@@ -55,7 +56,9 @@ $tables = [
         email VARCHAR(100) DEFAULT NULL,
         address TEXT,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
+        PRIMARY KEY (id),
+        KEY idx_phone (phone),
+        KEY idx_name (first_name, last_name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     
     "CREATE TABLE IF NOT EXISTS technicians (
@@ -116,10 +119,26 @@ foreach ($tables as $table) {
     try {
         $pdo->exec($table);
     } catch (PDOException $e) {
-        // Table might already exist, continue
         continue;
     }
 }
+
+require_once __DIR__ . '/intake_schema.php';
+bootstrap_intake_schema($pdo);
+
+// Migrations: add columns that CREATE TABLE IF NOT EXISTS won't add to existing tables
+try {
+    $cols = $pdo->query("SHOW COLUMNS FROM service_tickets LIKE 'version'")->fetchAll();
+    if (empty($cols)) {
+        $pdo->exec("ALTER TABLE service_tickets ADD COLUMN version SMALLINT NOT NULL DEFAULT 1");
+    }
+    // Migrate legacy ticket numbers (RR-YYYYMMDD-NNNN) to canonical (RR-YYMMDD-NNN-VV)
+    $pdo->exec("UPDATE service_tickets SET ticket_number = CONCAT(
+        SUBSTRING(ticket_number,1,3), SUBSTRING(ticket_number,6,6), '-',
+        LPAD(CAST(SUBSTRING(ticket_number,13) AS UNSIGNED), 3, '0'), '-',
+        LPAD(version, 2, '0'))
+        WHERE ticket_number REGEXP '^RR-[0-9]{8}-[0-9]{4}$'");
+} catch (PDOException $e) { /* table may not exist yet */ }
 
 // Re-enable foreign key checks
 $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");

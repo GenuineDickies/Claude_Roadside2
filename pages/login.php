@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../includes/functions.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = sanitize_input($_POST['username']);
     $password = $_POST['password'];
@@ -17,7 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Invalid username or password";
         }
     } catch (PDOException $e) {
-        $error = "Database error: " . $e->getMessage();
+        error_log('Login error: ' . $e->getMessage());
+        $error = "A system error occurred. Please try again.";
     }
 }
 ?>
@@ -32,6 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="mb-0">Command Center Login</p>
         </div>
             <div class="p-4">
+                <?php if (isset($_GET['timeout'])): ?>
+                    <div class="alert alert-warning">Your session expired due to inactivity. Please log in again.</div>
+                <?php endif; ?>
                 <?php if (isset($error)): ?>
                     <div class="alert alert-danger"><?php echo $error; ?></div>
                 <?php endif; ?>

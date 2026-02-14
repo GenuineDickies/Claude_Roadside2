@@ -59,7 +59,7 @@ if ($action === 'list') {
                         <tr>
                             <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green-500)"><?= htmlspecialchars($r['receipt_id']) ?></td>
                             <td><a href="?page=invoices-v2&action=view&id=<?= $r['invoice_id'] ?>" style="font-family:'JetBrains Mono',monospace;font-size:12px"><?= htmlspecialchars($r['inv_doc_id'] ?? '') ?></a></td>
-                            <td style="font-family:'JetBrains Mono',monospace;font-size:12px"><?= htmlspecialchars($r['ticket_number'] ?? '') ?></td>
+                            <td style="font-family:'JetBrains Mono',monospace;font-size:12px"><?= htmlspecialchars(format_ticket_number($r['ticket_number'] ?? '')) ?></td>
                             <td><?= htmlspecialchars($r['customer_name'] ?? '') ?></td>
                             <td style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--green-500)">$<?= number_format($r['amount_paid'], 2) ?></td>
                             <td style="font-size:12px"><?= ucfirst(str_replace('_', ' ', $r['payment_method_used'])) ?></td>
@@ -96,7 +96,7 @@ if ($action === 'list') {
 
 <!-- Full chain -->
 <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;font-size:12px;flex-wrap:wrap">
-    <a href="?page=service-requests&action=view&id=<?= $receipt['service_request_id'] ?>" style="color:var(--navy-300);text-decoration:none;padding:4px 10px;background:rgba(43,94,167,0.08);border-radius:4px"><i class="fas fa-ticket-alt"></i> <?= htmlspecialchars($receipt['ticket_number'] ?? 'SR') ?></a>
+    <a href="?page=service-requests&action=view&id=<?= $receipt['service_request_id'] ?>" style="color:var(--navy-300);text-decoration:none;padding:4px 10px;background:rgba(43,94,167,0.08);border-radius:4px"><i class="fas fa-ticket-alt"></i> <?= htmlspecialchars(format_ticket_number($receipt['ticket_number'] ?? '')) ?></a>
     <span style="color:var(--text-tertiary)"><i class="fas fa-chevron-right"></i></span>
     <a href="?page=work-orders&action=view&id=<?= $receipt['work_order_id'] ?>" style="color:var(--navy-300);text-decoration:none;padding:4px 10px;background:rgba(43,94,167,0.08);border-radius:4px"><i class="fas fa-clipboard-check"></i> <?= htmlspecialchars($receipt['wo_doc_id'] ?? 'WO') ?></a>
     <span style="color:var(--text-tertiary)"><i class="fas fa-chevron-right"></i></span>
