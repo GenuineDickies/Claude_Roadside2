@@ -95,7 +95,7 @@ This document defines the AI agent roles used during development of the RoadRunn
 **Guardrails:**
 - Never commit credentials (use `.env` file)
 - App runs directly from workspace — no separate deploy step
-- Database: MySQL on localhost, root/pass, database `roadside_assistance`
+- Database: MySQL on localhost, credentials from `.env`, database `roadside_assistance`
 - PHP 8 minimum required
 
 ---

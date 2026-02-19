@@ -45,7 +45,7 @@ claude_admin2/
 
 ## Database
 
-- **Host:** localhost | **User:** root | **Pass:** pass | **DB:** roadside_assistance
+- **Host:** localhost | **User:** (from `.env`) | **Pass:** (from `.env`) | **DB:** roadside_assistance
 - Connection is established in `config/database.php` — all pages receive `$pdo` via the router
 - Tables auto-create on first load via `CREATE TABLE IF NOT EXISTS`
 - Always use **prepared statements** with parameter binding:
@@ -151,7 +151,7 @@ Customer calls in
 - `sanitize_input()` for user text going into the database
 - `htmlspecialchars()` for displaying user content in HTML
 - Helper functions in `includes/functions.php` (badges, formatting, currency)
-- Session-based auth (admin/pass login)
+- Session-based auth (login via `?page=login`)
 
 ### JavaScript
 - Vanilla JS (no frameworks except React for service catalog)
@@ -172,15 +172,13 @@ Customer calls in
 - **Syntax check:** `php -l pages/your-page.php`
 - **Live test:** Open `http://localhost/claude_admin2/?page=your-page` in browser
 - **API test:** `curl http://localhost/claude_admin2/api/your-endpoint.php?action=list`
-- **Database:** Connect via `mysql -u root -ppass roadside_assistance`
+- **Database:** Connect via `mysql -u <DB_USER> -p <DB_NAME>` (credentials from `.env`)
 
 ---
 
-## Login Credentials
+## Login
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | admin | pass |
+The default admin account is created on first launch. The generated password is written once to the PHP error log — check your server logs after the first page load and change the password immediately.
 
 ---
 

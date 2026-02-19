@@ -49,8 +49,8 @@ The application will automatically create the database and tables when you first
 **Default Database Configuration:**
 - Host: localhost
 - Database: roadside_assistance
-- Username: root
-- Password: (empty)
+- Username: (set in `.env` — `DB_USER`)
+- Password: (set in `.env` — `DB_PASS`)
 
 ### 4. Access the Application
 1. Open your web browser
@@ -59,7 +59,7 @@ The application will automatically create the database and tables when you first
 
 **Default Login Credentials:**
 - Username: `admin`
-- Password: `admin123`
+- Password: generated at first launch — check the PHP error log (`/var/log/apache2/error.log`) and change it immediately
 
 ### 5. First-Time Setup
 After logging in:
@@ -182,7 +182,7 @@ Modify `assets/css/style.css` to customize the appearance:
    - Check that the URL is correct: `http://localhost/claude_admin2/`
 
 3. **Login Issues**
-   - Use default credentials: admin/admin123
+   - Check the PHP error log for the generated admin password on first run
    - Clear browser cache and cookies
 
 4. **Permission Errors**

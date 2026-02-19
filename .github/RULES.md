@@ -173,7 +173,7 @@ Overlay: `rgba(0,0,0,0.75)` + `backdrop-filter:blur(4px)`. Surface: `var(--bg-su
 App runs directly from workspace — no separate deploy step needed.
 
 ## Database
-Host: `localhost` | User: `root` | Pass: `pass` | DB: `roadside_assistance`
+Host: `localhost` | User: (from `.env`) | Pass: (from `.env`) | DB: `roadside_assistance`
 
 ## Reference Files
 - **Canonical pages:** `_working/services.php`, `pages/dashboard.php` — match these exactly

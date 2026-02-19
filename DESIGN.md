@@ -1487,7 +1487,7 @@ claude_admin2/                      — Development workspace
 │   └── logout.php                  — Utility page
 │
 ├── config/                         — ⚙️ Configuration
-│   └── database.php                — MySQL connection (root/pass)
+│   └── database.php                — MySQL connection (credentials from .env)
 │
 ├── includes/                       — 🔧 Helper functions
 │   └── functions.php               — Utility functions
@@ -1533,8 +1533,8 @@ code assets/css/style.css     # Global styles
 | **Application URL** | `http://localhost/claude_admin2/` |
 | **Database Host** | localhost |
 | **Database Name** | roadside_assistance |
-| **Database User** | root |
-| **Database Password** | pass |
+| **Database User** | (from `.env` — `DB_USER`) |
+| **Database Password** | (from `.env` — `DB_PASS`) |
 
 ### Future Enhancements
 
