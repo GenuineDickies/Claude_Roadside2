@@ -1,5 +1,196 @@
 # SMS Message Templates
 
+Customer-facing message templates for RoadRunner Admin’s Telnyx SMS workflow.
+
+Use `[Brand Name]` as the customer-visible business identifier (set by `sms_brand_name` in Settings).
+
+## Template Requirements
+
+All outbound templates should include:
+- ✅ Business identifier
+- ✅ Opt-out instructions (at least: `Reply STOP to opt out`)
+- ✅ Clear, concise content
+- ✅ No prohibited content (SHAFT-C)
+- ✅ Only send if customer has SMS consent on file
+
+---
+
+## Implemented Templates (Source of Truth)
+
+The templates that actually exist in the codebase live in `includes/TelnyxSMS.php` as `TelnyxSMS::TEMPLATES`.
+
+Important:
+- `brand_name` is required for all template sends (settings-driven).
+- Variable names are **snake_case** and must match exactly.
+
+| Template Key | Purpose | Required Variables |
+|-------------|---------|--------------------|
+| `ticket_created` | Service confirmed | `brand_name`, `ticket_id`, `service_type`, `location` |
+| `tech_dispatched` | Technician en route | `brand_name`, `tech_name`, `vehicle_desc`, `eta_minutes` |
+| `eta_update` | ETA changed | `brand_name`, `eta_time`, `reason`, `tech_name` |
+| `tech_arrived` | Technician arrived | `brand_name`, `tech_name`, `vehicle_desc`, `support_phone` |
+| `service_complete` | Work completed | `brand_name`, `service_summary`, `amount` |
+| `payment_received` | Payment received | `brand_name`, `amount`, `invoice_id` |
+| `help_response` | Reply HELP | `brand_name`, `support_phone`, `support_email`, `support_hours` |
+| `stop_response` | Reply STOP | `brand_name` |
+| `start_response` | Reply START | `brand_name` |
+
+---
+
+## Workflow Templates (Customer Care / Transactional)
+
+These are the customer-facing “copy” versions of the templates above.
+
+### Ticket Created / Service Confirmed (`ticket_created`)
+
+```
+[Brand Name]: Service confirmed! Ticket #{ticket_id}.
+{service_type} at {location}.
+We're dispatching help now. Reply STOP to opt out.
+```
+
+### Technician Dispatched (`tech_dispatched`)
+
+```
+[Brand Name]: {tech_name} is on the way!
+Vehicle: {vehicle_desc}
+ETA: {eta_minutes} minutes
+Reply STOP to opt out.
+```
+
+Note: If you want tracking links, send a non-template SMS (or add a new template that includes a `{tracking_link}` variable).
+
+### ETA Update (`eta_update`)
+
+```
+[Brand Name] Update: New ETA {eta_time}.
+{reason}
+Your technician {tech_name} will arrive soon.
+Reply STOP to opt out.
+```
+
+### Technician Arrived (`tech_arrived`)
+
+```
+[Brand Name]: {tech_name} has arrived at your location.
+Please look for: {vehicle_desc}
+Questions? Call {support_phone}
+Reply STOP to opt out.
+```
+
+### Service Complete (`service_complete`)
+
+```
+[Brand Name]: Service complete!
+{service_summary}
+Total: ${amount}
+Thank you for choosing [Brand Name]!
+Reply STOP to opt out.
+```
+
+### Payment Received (`payment_received`)
+
+```
+[Brand Name] Payment: ${amount} received.
+Invoice #{invoice_id}
+Thank you!
+Reply STOP to opt out.
+```
+
+---
+
+## Auto-Reply Templates
+
+### HELP Response (`help_response`)
+
+```
+[Brand Name]
+Support: {support_phone}
+Email: {support_email}
+Hours: {support_hours}
+Reply STOP to unsubscribe.
+```
+
+### STOP Response (`stop_response`)
+
+```
+[Brand Name]: You've been unsubscribed and will no longer receive messages. Reply START to resubscribe.
+```
+
+### START Response (`start_response`)
+
+```
+[Brand Name]: Welcome back! You've been resubscribed to service notifications. Reply STOP to opt out.
+```
+
+---
+
+## Suggested Copy (Not Implemented as Templates)
+
+These are useful messages, but they are **not** currently included in `TelnyxSMS::TEMPLATES`.
+
+### Opt-In Confirmation (recommended after capturing consent)
+
+```
+[Brand Name]: You're opted in to receive service updates by text.
+Message frequency varies. Msg & data rates may apply.
+Reply STOP to opt out, HELP for help.
+```
+
+### Follow-Up Survey (marketing / non-transactional)
+
+Requires separate explicit consent (not just transactional service updates).
+
+```
+[Brand Name]: How was your service yesterday?
+Rate us 1-5: {survey_link}
+Your feedback helps us improve!
+Reply STOP to opt out.
+```
+
+---
+
+## PHP: Sending a Template
+
+This example shows the real RoadRunner pattern: settings-driven config + `TelnyxSMS::sendTemplate()`.
+
+```php
+<?php
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/TelnyxSMS.php';
+
+$apiKey = (string)get_setting($pdo, 'telnyx_api_key', '');
+$fromNumber = (string)get_setting($pdo, 'telnyx_from_number', '');
+$brandName = (string)get_setting($pdo, 'sms_brand_name', '[Brand Name]');
+
+if ($apiKey === '' || $fromNumber === '') {
+    throw new RuntimeException('Missing SMS settings (telnyx_api_key / telnyx_from_number)');
+}
+
+$sms = new TelnyxSMS([
+    'api_key' => $apiKey,
+    'from_number' => $fromNumber,
+]);
+
+$result = $sms->sendTemplate('+15551234567', 'tech_dispatched', [
+    'brand_name' => $brandName,
+    'tech_name' => 'John',
+    'vehicle_desc' => 'Gray Ford F-150',
+    'eta_minutes' => '15',
+]);
+
+var_dump($result);
+```
+
+---
+
+## Character Counts
+
+Try to keep messages under 160 characters where possible (single segment).
+The Telnyx API will segment longer messages automatically (max 10 segments).
+# SMS Message Templates
+
 Pre-approved customer-facing message templates for dispatch workflow notifications.
 
 Use `[Brand Name]` as the customer-visible business identifier (set by `sms_brand_name` in settings).
@@ -51,9 +242,6 @@ We're dispatching help now. Reply STOP to opt out.
 [Brand Name]: Service confirmed! Ticket #SR-2026-0142.
 Flat tire repair at 1234 Main St, Portland OR.
 We're dispatching help now. Reply STOP to opt out.
-```
-
----
 
 ### 2. Technician Dispatched
 
@@ -61,9 +249,6 @@ We're dispatching help now. Reply STOP to opt out.
 
 ```
 [Brand Name]: {TECH_NAME} is on the way!
-Vehicle: {VEHICLE_DESC}
-ETA: {ETA_MINUTES} minutes
-Track: {TRACKING_LINK}
 Reply STOP to opt out.
 ```
 
@@ -71,9 +256,6 @@ Reply STOP to opt out.
 - `{TECH_NAME}` — Technician first name
 - `{VEHICLE_DESC}` — e.g., "Gray Ford F-150"
 - `{ETA_MINUTES}` — Estimated minutes
-- `{TRACKING_LINK}` — Optional tracking URL
-
-**Example**:
 ```
 [Brand Name]: John is on the way!
 Vehicle: Gray Ford F-150
@@ -87,8 +269,6 @@ Reply STOP to opt out.
 
 **Trigger**: When ETA changes by 10+ minutes
 
-```
-[Brand Name] Update: New ETA {ETA_TIME}.
 {REASON}
 Your technician {TECH_NAME} will arrive soon.
 Reply STOP to opt out.
