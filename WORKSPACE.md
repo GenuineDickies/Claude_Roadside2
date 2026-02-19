@@ -61,8 +61,8 @@ App runs directly from workspace — edits are live immediately at `http://local
 
 **Database:**
 - Host: localhost
-- User: root
-- Password: pass
+- User: (from `.env` — `DB_USER`)
+- Password: (from `.env` — `DB_PASS`)
 - Database: roadside_assistance
 
 ## Reference

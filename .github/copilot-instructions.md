@@ -12,7 +12,7 @@ RoadRunner Admin — PHP-based roadside assistance & mobile mechanic operations 
 - **Stack:** PHP 8 + MySQL + Bootstrap 5.1.3 + React 18 (CDN, catalog only)
 - **Workspace:** `\\wsl.localhost\Ubuntu\var\www\html\claude_admin2`
 - **URL:** `http://localhost/claude_admin2/`
-- **DB:** MySQL — root/pass — database: roadside_assistance
+- **DB:** MySQL — credentials from `.env` — database: roadside_assistance
 
 ## File Locations
 | What | Where |

@@ -15,7 +15,7 @@ Since the app runs directly from the workspace:
 ### Step 3: Rollback Database
 If schema was changed:
 1. Run `php reset_db.php` to rebuild tables
-2. Or restore from backup: `mysql -u root -p roadside_assistance < backup.sql`
+2. Or restore from backup: `mysql -u "$DB_USER" -p "$DB_NAME" < backup.sql`
 
 ### Step 4: Verify
 - Load dashboard

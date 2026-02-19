@@ -4,7 +4,7 @@
 - **OS:** WSL Ubuntu on Windows
 - **Web Server:** Apache 2
 - **PHP:** 8.0+
-- **Database:** MySQL (localhost, root/pass, database: roadside_assistance)
+- **Database:** MySQL (localhost, credentials from `.env`, database: roadside_assistance)
 - **Workspace:** /var/www/html/claude_admin2/
 - **URL:** http://localhost/claude_admin2/
 
@@ -16,7 +16,7 @@ sudo service mysql start
 
 ## Default Login
 - Username: admin
-- Password: pass
+- Password: generated at first launch — check `/var/log/apache2/error.log` and change it immediately
 
 ## Common Tasks
 ### Reset Database

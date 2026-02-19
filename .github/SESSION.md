@@ -10,7 +10,7 @@
 
 ## What Was Changed
 - All B3 references removed from entire codebase (RULES.md, DESIGN.md, WORKSPACE.md, README.md, etc.)
-- Default password changed from `admin123` → `pass` in `config/database.php` seed + `pages/login.php` hint
+- Default password changed from hardcoded value → randomly generated on first launch (written to error log) in `config/database.php` seed
 
 ## Pending / Blocked
 
@@ -23,7 +23,7 @@
 - The `000-default.conf` in `sites-available/` also has a `Roadside.conf`
 
 ### 2. Password Not Updated in DB Yet
-- Code updated (seed → `pass`), but existing DB row still has old `admin123` hash
+- Code updated to use randomly-generated password on first launch; check PHP error log for the generated password
 - `update_pass.php` temp file exists — needs to run then self-deletes
 - Can't run until Apache serves the app
 
@@ -46,7 +46,7 @@ curl http://localhost/claude_admin2/update_pass.php
 
 ## Architecture Reference
 - Stack: PHP 8 + MySQL/PDO + Bootstrap 5.1.3 + Font Awesome 6
-- DB: roadside_assistance (root/pass on localhost)
+- DB: roadside_assistance (credentials from `.env` on localhost)
 - Theme: Dark (#0C0E12), Navy (#2B5EA7) for UI chrome, signal colors for status
 - Fonts: DM Sans (UI), JetBrains Mono (data)
 - All pages: gradient header + navy border, scoped CSS prefixes
