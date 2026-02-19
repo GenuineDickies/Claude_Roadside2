@@ -159,8 +159,10 @@ $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
 try {
     $checkUser = $pdo->query("SELECT COUNT(*) FROM users WHERE username = 'admin'")->fetchColumn();
     if ($checkUser == 0) {
+        $defaultPass = bin2hex(random_bytes(8));
         $stmt = $pdo->prepare("INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)");
-        $stmt->execute(['admin', password_hash('pass', PASSWORD_DEFAULT), 'admin@roadside.com', 'admin']);
+        $stmt->execute(['admin', password_hash($defaultPass, PASSWORD_DEFAULT), 'admin@roadside.com', 'admin']);
+        error_log("RoadRunner Admin: Default admin user created. Username: admin  Password: $defaultPass — Change this immediately after first login.");
     }
 } catch (PDOException $e) {
     // User might already exist, continue anyway
