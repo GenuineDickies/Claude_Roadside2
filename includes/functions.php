@@ -26,6 +26,38 @@ function format_phone($phone) {
     return $phone; // Return as-is if not standard US format
 }
 
+/**
+ * Returns true only when we have explicit SMS consent AND the number is not opted out.
+ *
+ * Consent is stored in sms_consent.phone_digits (digits-only).
+ */
+function has_sms_consent($phone, $pdo = null): bool {
+    $digits = preg_replace('/\D/', '', (string)$phone);
+    if ($digits === '') {
+        return false;
+    }
+
+    if ($pdo === null) {
+        global $pdo;
+    }
+
+    if (!($pdo instanceof PDO)) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare('SELECT consent, opted_out FROM sms_consent WHERE phone_digits = ? LIMIT 1');
+        $stmt->execute([$digits]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        return ((int)$row['consent'] === 1) && ((int)$row['opted_out'] === 0);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
 function format_date($date) {
     return date('M d, Y', strtotime($date));
 }
