@@ -10,6 +10,23 @@ Telnyx sends HTTP POST webhooks for:
 
 ---
 
+## RoadRunner Admin Webhook Flow (Actual Implementation)
+
+RoadRunner Admin does **not** expose a public webhook endpoint from the local app.
+Instead it uses a small **SiteGround webhook proxy** that queues Telnyx webhooks in a MySQL table, then the local app polls and processes them.
+
+Flow:
+
+1. Telnyx → `https://YOURDOMAIN.com/sms-webhook/webhook.php` (public proxy)
+2. Proxy queues payloads into `sms_webhook_queue`
+3. Local app calls `api/sms-webhook-poll.php` to:
+  - fetch queued events from the proxy (`/poll`)
+  - process STOP/HELP/START/UNSTOP keywords
+  - update local consent tables
+  - mark proxy rows processed (`/mark-processed`)
+
+---
+
 ## Webhook Configuration
 
 ### Configure via Portal
@@ -22,11 +39,11 @@ Telnyx sends HTTP POST webhooks for:
 ### Configure via API
 
 ```bash
-curl -X PATCH "https://api.telnyx.com/v2/messaging_profiles/40019be9-93d9-478c-96ee-a90883641625" \
+curl -X PATCH "https://api.telnyx.com/v2/messaging_profiles/YOUR_MESSAGING_PROFILE_ID" \
   -H "Authorization: Bearer $TELNYX_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "webhook_url": "https://your-domain.com/api/sms/webhook.php",
+    "webhook_url": "https://YOURDOMAIN.com/sms-webhook/webhook.php",
     "webhook_failover_url": "https://backup.your-domain.com/webhook.php"
   }'
 ```
@@ -174,166 +191,23 @@ All webhooks share this structure:
 
 ---
 
-## PHP Webhook Handler
+## RoadRunner Implementation (Proxy + Poller)
 
-### Basic Handler
+RoadRunner Admin handles Telnyx webhooks in **two** places:
 
-```php
-<?php
-// api/sms/webhook.php
+1. **Public proxy receiver (SiteGround)**: `siteground/sms-webhook/webhook.php`
+   - Receives Telnyx `POST` webhooks (unauthenticated)
+   - Queues payloads in the proxy database table `sms_webhook_queue`
 
-// Respond immediately (required within 2 seconds)
-http_response_code(200);
-echo 'OK';
+2. **Local poller/processor**: `api/sms-webhook-poll.php`
+   - Authenticates to the proxy using `sms_webhook_proxy_poll_key`
+   - Polls queued events (`/poll`), processes opt-out keywords (STOP/HELP/START/UNSTOP), updates local consent state
+   - Acknowledges processed proxy rows (`/mark-processed`)
 
-// Flush output and continue processing
-if (function_exists('fastcgi_finish_request')) {
-    fastcgi_finish_request();
-}
+### Signature Verification
 
-// Get webhook payload
-$payload = file_get_contents('php://input');
-$data = json_decode($payload, true);
-
-if (!$data || !isset($data['data']['event_type'])) {
-    exit;
-}
-
-$event_type = $data['data']['event_type'];
-$message_data = $data['data']['payload'];
-
-// Log webhook
-error_log("Telnyx webhook: $event_type");
-
-switch ($event_type) {
-    case 'message.received':
-        handle_inbound_message($message_data);
-        break;
-        
-    case 'message.sent':
-        handle_message_sent($message_data);
-        break;
-        
-    case 'message.finalized':
-        handle_delivery_receipt($message_data);
-        break;
-}
-
-function handle_inbound_message($data) {
-    $from = $data['from']['phone_number'];
-    $to = $data['to'][0]['phone_number'];
-    $text = $data['text'] ?? '';
-    $message_id = $data['id'];
-    
-    // Check for opt-out keywords
-    $text_upper = strtoupper(trim($text));
-    if (in_array($text_upper, ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'])) {
-        handle_opt_out($from);
-        return;
-    }
-    
-    if (in_array($text_upper, ['HELP', 'INFO'])) {
-        handle_help_request($from);
-        return;
-    }
-    
-    // Log to database
-    log_inbound_message($from, $to, $text, $message_id);
-    
-    // Check for MMS media
-    if (!empty($data['media'])) {
-        foreach ($data['media'] as $media) {
-            // Download and store media (URLs expire in 30 days)
-            store_media($message_id, $media['url'], $media['content_type']);
-        }
-    }
-}
-
-function handle_delivery_receipt($data) {
-    $message_id = $data['id'];
-    $status = $data['to'][0]['status'] ?? 'unknown';
-    $completed_at = $data['completed_at'] ?? null;
-    
-    // Update message status in database
-    update_message_status($message_id, $status, $completed_at);
-    
-    if ($status === 'delivery_failed') {
-        $errors = $data['errors'] ?? [];
-        log_delivery_failure($message_id, $errors);
-    }
-}
-
-function handle_opt_out($phone) {
-    // Update customer SMS consent in database
-    global $pdo;
-    $stmt = $pdo->prepare("
-        UPDATE customers 
-        SET sms_consent = 0, 
-            sms_opt_out_at = NOW() 
-        WHERE phone = ?
-    ");
-    $stmt->execute([$phone]);
-    
-    error_log("SMS opt-out: $phone");
-}
-
-function handle_help_request($phone) {
-    // Auto-reply with help message
-  send_sms($phone, "[Brand Name]. For help call [Support Phone]. Reply STOP to opt out.");
-}
-```
-
-### With Signature Verification (Recommended for Production)
-
-```php
-<?php
-// api/sms/webhook.php
-
-// Get headers
-$signature = $_SERVER['HTTP_TELNYX_SIGNATURE_ED25519'] ?? '';
-$timestamp = $_SERVER['HTTP_TELNYX_TIMESTAMP'] ?? '';
-$payload = file_get_contents('php://input');
-
-// Verify signature
-$public_key = getenv('TELNYX_PUBLIC_KEY');
-
-if (!verify_telnyx_signature($payload, $signature, $timestamp, $public_key)) {
-    http_response_code(403);
-    exit('Invalid signature');
-}
-
-// Check timestamp (prevent replay attacks)
-$webhook_time = (int)$timestamp;
-$current_time = time();
-if (abs($current_time - $webhook_time) > 300) { // 5 minute tolerance
-    http_response_code(403);
-    exit('Timestamp too old');
-}
-
-// Continue processing...
-http_response_code(200);
-
-function verify_telnyx_signature($payload, $signature, $timestamp, $public_key) {
-    // Decode the signature
-    $sig_bytes = base64_decode($signature);
-    if ($sig_bytes === false) {
-        return false;
-    }
-    
-    // Build the signed payload
-    $signed_payload = $timestamp . '|' . $payload;
-    
-    // Verify using Ed25519
-    // Note: Requires sodium extension (PHP 7.2+)
-    $pub_key_bytes = base64_decode($public_key);
-    
-    return sodium_crypto_sign_verify_detached(
-        $sig_bytes,
-        $signed_payload,
-        $pub_key_bytes
-    );
-}
-```
+The shipped proxy focuses on fast queuing and does **not** currently verify Telnyx webhook signatures.
+If you need signature verification, add it at the proxy layer before queue insert using Telnyx webhook signing headers.
 
 ---
 
@@ -368,93 +242,76 @@ If you must use IP allowlisting, check Telnyx documentation for current IPs as t
 
 ---
 
-## Database Schema for SMS Logging
+## Database Schema (Actual)
+
+Local RoadRunner Admin database tables (created/updated by `config/intake_schema.php`):
 
 ```sql
-CREATE TABLE sms_messages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    telnyx_message_id VARCHAR(50) UNIQUE,
-    direction ENUM('inbound', 'outbound') NOT NULL,
-    from_number VARCHAR(20) NOT NULL,
-    to_number VARCHAR(20) NOT NULL,
-    message_text TEXT,
-    status VARCHAR(30) DEFAULT 'queued',
-    parts INT DEFAULT 1,
-    cost DECIMAL(8,5),
-    carrier VARCHAR(50),
-    related_ticket_id INT,
-    sent_at TIMESTAMP NULL,
-    delivered_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_telnyx_id (telnyx_message_id),
-    INDEX idx_from (from_number),
-    INDEX idx_to (to_number),
-    INDEX idx_ticket (related_ticket_id),
-    INDEX idx_status (status)
-);
+CREATE TABLE IF NOT EXISTS sms_consent (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  phone_digits VARCHAR(20) NOT NULL,
+  consent TINYINT(1) NOT NULL DEFAULT 0,
+  consent_at TIMESTAMP NULL DEFAULT NULL,
+  opted_out TINYINT(1) NOT NULL DEFAULT 0,
+  opt_out_at TIMESTAMP NULL DEFAULT NULL,
+  last_source VARCHAR(50) DEFAULT NULL,
+  last_ticket_id INT DEFAULT NULL,
+  last_ticket_number VARCHAR(20) DEFAULT NULL,
+  last_seen_at TIMESTAMP NULL DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_phone (phone_digits),
+  KEY idx_consent (consent),
+  KEY idx_opted_out (opted_out),
+  KEY idx_last_seen (last_seen_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE sms_media (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    message_id INT NOT NULL,
-    url VARCHAR(500),
-    content_type VARCHAR(100),
-    local_path VARCHAR(255),
-    size INT,
-    downloaded_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (message_id) REFERENCES sms_messages(id)
-);
+CREATE TABLE IF NOT EXISTS sms_consent_events (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  phone_digits VARCHAR(20) NOT NULL,
+  event_type VARCHAR(30) NOT NULL,
+  source VARCHAR(50) DEFAULT NULL,
+  ticket_id INT DEFAULT NULL,
+  ticket_number VARCHAR(20) DEFAULT NULL,
+  user_id INT DEFAULT NULL,
+  meta JSON DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_phone (phone_digits),
+  KEY idx_event (event_type),
+  KEY idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
 
-CREATE TABLE sms_consent (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    phone_number VARCHAR(20) NOT NULL,
-    consented TINYINT(1) DEFAULT 1,
-    consent_method ENUM('verbal-dispatcher', 'web-form', 'sms-keyword') NOT NULL,
-    consented_at TIMESTAMP NULL,
-    opted_out_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    UNIQUE INDEX idx_phone (phone_number)
-);
+SiteGround proxy database queue table (created by `siteground/sms-webhook/webhook.php`):
+
+```sql
+CREATE TABLE IF NOT EXISTS sms_webhook_queue (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  payload JSON NOT NULL,
+  received_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  processed TINYINT(1) NOT NULL DEFAULT 0,
+  processed_at DATETIME NULL,
+  INDEX idx_processed (processed),
+  INDEX idx_received (received_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
 ---
 
-## Testing Webhooks Locally
+## Testing (Proxy + Poller)
 
-### Using ngrok
+For RoadRunner Admin, test the **public proxy** and then run the **local poller**.
 
-```bash
-# Install ngrok
-brew install ngrok
-
-# Start tunnel
-ngrok http 80
-
-# Use the https URL as your webhook
-# Example: https://abc123.ngrok.io/api/sms/webhook.php
-```
-
-### Test with curl
+### 1) Check proxy health
 
 ```bash
-curl -X POST http://localhost/claude_admin2/api/sms/webhook.php \
-  -H "Content-Type: application/json" \
-  -d '{
-    "data": {
-      "event_type": "message.received",
-      "id": "test-123",
-      "payload": {
-        "from": {"phone_number": "+15551234567"},
-        "to": [{"phone_number": "+15551234567"}],
-        "text": "Test message"
-      }
-    }
-  }'
+curl https://YOURDOMAIN.com/sms-webhook/webhook.php/status
 ```
+
+### 2) Run the local poller
+
+- If logged in: `http://localhost/claude_admin2/api/sms-webhook-poll.php`
+- For cron: `http://localhost/claude_admin2/api/sms-webhook-poll.php?key=YOUR_LOCAL_POLLER_KEY`
 
 ---
 

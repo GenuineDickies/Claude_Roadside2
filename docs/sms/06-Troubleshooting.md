@@ -6,6 +6,8 @@ Common issues, error codes, and solutions for Telnyx SMS integration.
 
 ## Quick Diagnostics
 
+RoadRunner Admin stores Telnyx configuration in Settings (DB). For the curl examples below, use the same API key and From number found in Settings (`telnyx_api_key`, `telnyx_from_number`).
+
 ### Test API Connection
 
 ```bash
@@ -23,7 +25,7 @@ curl -X POST "https://api.telnyx.com/v2/messages" \
   -H "Authorization: Bearer $TELNYX_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "from": "+15551234567",
+    "from": "YOUR_TELNYX_NUMBER",
     "to": "+15551234567",
     "text": "Test message"
   }'
@@ -146,7 +148,13 @@ curl -X GET "https://api.telnyx.com/v2/10dlc/campaigns/{campaign_id}" \
 <?php
 // Check delivery status
 function check_message_status($message_id) {
-    $api_key = getenv('TELNYX_API_KEY');
+  require_once __DIR__ . '/../../config/database.php';
+  require_once __DIR__ . '/../../includes/functions.php';
+
+  $api_key = (string)get_setting($pdo, 'telnyx_api_key', '');
+  if ($api_key === '') {
+    return ['status' => 'unknown', 'errors' => ['Missing telnyx_api_key setting']];
+  }
     
     $ch = curl_init("https://api.telnyx.com/v2/messages/$message_id");
     curl_setopt_array($ch, [
@@ -179,15 +187,20 @@ function check_message_status($message_id) {
 
 1. **Check webhook URL**:
    ```bash
-   curl -X GET "https://api.telnyx.com/v2/messaging_profiles/40019be9-93d9-478c-96ee-a90883641625" \
+  curl -X GET "https://api.telnyx.com/v2/messaging_profiles/YOUR_MESSAGING_PROFILE_ID" \
      -H "Authorization: Bearer $TELNYX_API_KEY" | jq '.data.webhook_url'
    ```
 
+  RoadRunner Admin uses a **public SiteGround webhook proxy**. Telnyx should send webhooks to the proxy URL stored in Settings as `sms_webhook_proxy_url`.
+
 2. **Test endpoint accessibility**:
    ```bash
-   curl -I https://your-domain.com/api/sms/webhook.php
-   # Should return 200
+  curl -I https://YOURDOMAIN.com/sms-webhook/webhook.php/status
    ```
+
+  RoadRunner Admin does **not** expose a public local webhook endpoint.
+
+3. **Confirm the local poller is running**: the local app polls the proxy queue and processes STOP/HELP/START keywords via `api/sms-webhook-poll.php`.
 
 3. **Check firewall**: Telnyx recommends signature verification over IP allowlisting (see Webhooks documentation)
 
@@ -429,14 +442,25 @@ curl -X GET "https://api.telnyx.com/v2/10dlc/campaigns" \
 ```php
 <?php
 function debug_sms_config() {
-    $api_key = getenv('TELNYX_API_KEY');
-    $from = getenv('TELNYX_FROM_NUMBER');
-    $profile = getenv('TELNYX_MESSAGING_PROFILE_ID');
+    require_once __DIR__ . '/../../config/database.php';
+    require_once __DIR__ . '/../../includes/functions.php';
+
+    $api_key = (string)get_setting($pdo, 'telnyx_api_key', '');
+    $from = (string)get_setting($pdo, 'telnyx_from_number', '');
+    $brand = (string)get_setting($pdo, 'sms_brand_name', '');
+    $proxy_url = (string)get_setting($pdo, 'sms_webhook_proxy_url', '');
+    $proxy_poll_key = (string)get_setting($pdo, 'sms_webhook_proxy_poll_key', '');
+    $local_key = (string)get_setting($pdo, 'sms_webhook_local_key', '');
+    $public_base_url = (string)get_setting($pdo, 'app_public_base_url', '');
     
     echo "=== SMS Configuration ===\n";
     echo "API Key: " . (strlen($api_key) > 10 ? substr($api_key, 0, 10) . '...' : 'MISSING') . "\n";
     echo "From Number: " . ($from ?: 'MISSING') . "\n";
-    echo "Profile ID: " . ($profile ?: 'MISSING') . "\n";
+    echo "Brand Name: " . ($brand ?: 'MISSING') . "\n";
+    echo "Proxy URL: " . ($proxy_url ?: 'MISSING') . "\n";
+    echo "Proxy Poll Key: " . ($proxy_poll_key ? '(set)' : 'MISSING') . "\n";
+    echo "Local Key: " . ($local_key ? '(set)' : 'MISSING') . "\n";
+    echo "Public Base URL: " . ($public_base_url ?: 'MISSING') . "\n";
     
     // Test API
     $ch = curl_init('https://api.telnyx.com/v2/messaging_profiles');
@@ -456,7 +480,8 @@ function debug_sms_config() {
     }
 }
 
-// Run: php -r "require 'includes/functions.php'; debug_sms_config();"
+// Tip: paste this into a temporary script (e.g. docs/sms/debug_sms_config.php) and run:
+// php docs/sms/debug_sms_config.php
 ```
 
 ---

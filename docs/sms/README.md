@@ -1,4 +1,4 @@
-# RoadRunner SMS Knowledge Base
+# SMS Knowledge Base
 
 Comprehensive documentation for Telnyx SMS integration, 10DLC compliance, and API usage.
 
@@ -13,15 +13,19 @@ Comprehensive documentation for Telnyx SMS integration, 10DLC compliance, and AP
 | [Opt-In & Consent](?page=sms-knowledge&doc=consent) | TCPA compliance, consent collection, opt-out handling |
 | [Troubleshooting](?page=sms-knowledge&doc=troubleshooting) | Common errors, delivery failures, debugging |
 
-## RoadRunner SMS Configuration
+## How RoadRunner Admin is configured
 
-```
-Profile Name:     Roadside_Service
-Profile ID:       40019be9-93d9-478c-96ee-a90883641625
-From Number:      +15551234567
-Webhook URL:      https://YOURDOMAIN.com/sms-webhook/webhook.php
-Destinations:     US, CA, MX
-```
+RoadRunner Admin stores SMS configuration in the database-backed Settings system (not `.env`).
+
+Configure in **System → SMS Settings**:
+
+- `sms_brand_name` — customer-facing business identifier for SMS
+- `telnyx_api_key` — Telnyx Secret API key (write-only in UI)
+- `telnyx_from_number` — Telnyx number in E.164 (e.g. `+15551234567`)
+- `sms_webhook_proxy_url` — public proxy URL Telnyx posts to (SiteGround)
+- `sms_webhook_proxy_poll_key` — API key used by the local app to poll the proxy
+- `sms_webhook_local_key` — optional key for running the local poller without a logged-in session
+- `app_public_base_url` — optional base URL used for customer-facing links (e.g. `https://YOURDOMAIN.com`)
 
 ## Key Compliance Dates
 

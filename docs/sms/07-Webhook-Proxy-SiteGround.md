@@ -15,9 +15,12 @@ Simple webhook proxy that receives Telnyx SMS webhooks and queues them for your 
 
 4. **Choose a database** for the proxy queue (any MySQL database you control).
 
-   In RoadRunner Admin go to **System → SMS Settings** and enter your **Webhook Proxy DB Host/Name/User/Password**.
+   In RoadRunner Admin go to **System → SMS Settings** and enter your **Webhook Proxy DB Host/Name/User/Password** (so the deployment values are recorded in one place).
 
-   Then **copy/paste** the generated “Proxy Config Snippet” into the remote `webhook.php`.
+   On SiteGround, create a `config.php` file in the same folder as `webhook.php`.
+   - Start from `config.sample.php`.
+   - Keep `config.php` out of git.
+   - Do **not** hardcode secrets directly in `webhook.php`.
 
 ```php
 define('DB_HOST', 'localhost');
@@ -54,6 +57,11 @@ curl https://YOURDOMAIN.com/sms-webhook/webhook.php/status
 
 # Poll for webhooks (replace YOUR_API_KEY)
 curl "https://YOURDOMAIN.com/sms-webhook/webhook.php/poll?api_key=YOUR_API_KEY"
+
+# Mark processed (POST JSON body)
+curl -X POST "https://YOURDOMAIN.com/sms-webhook/webhook.php/mark-processed?api_key=YOUR_API_KEY" \
+   -H "Content-Type: application/json" \
+   -d '{"ids":[1,2,3]}'
 ```
 
 ## Local App Configuration (RoadRunner Admin)

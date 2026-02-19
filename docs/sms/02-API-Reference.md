@@ -114,126 +114,46 @@ curl -X POST https://api.telnyx.com/v2/messages \
 
 ## PHP Implementation
 
-### Send SMS Function
+### RoadRunner Admin: Send SMS using Settings + `TelnyxSMS`
+
+RoadRunner Admin stores Telnyx credentials in Settings (DB), and uses the helper in `includes/TelnyxSMS.php`.
 
 ```php
 <?php
-/**
- * Send SMS via Telnyx API
- * 
- * @param string $to Recipient phone number (E.164 format)
- * @param string $message Message content
- * @param string|null $from Sender number (defaults to env)
- * @return array Response data
- */
-function send_sms($to, $message, $from = null) {
-    $api_key = getenv('TELNYX_API_KEY') ?: $_ENV['TELNYX_API_KEY'];
-  $from_number = $from ?? (getenv('TELNYX_FROM_NUMBER') ?: '+15551234567');
-    
-    // Format phone number to E.164
-    $to = format_e164($to);
-    
-    $payload = [
-        'from' => $from_number,
-        'to' => $to,
-        'text' => $message
-    ];
-    
-    $ch = curl_init('https://api.telnyx.com/v2/messages');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $api_key,
-            'Content-Type: application/json'
-        ],
-        CURLOPT_POSTFIELDS => json_encode($payload)
-    ]);
-    
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    
-    $data = json_decode($response, true);
-    
-    return [
-        'success' => $http_code === 200,
-        'http_code' => $http_code,
-        'message_id' => $data['data']['id'] ?? null,
-        'status' => $data['data']['to'][0]['status'] ?? null,
-        'cost' => $data['data']['cost']['amount'] ?? null,
-        'error' => $data['errors'][0]['title'] ?? null,
-        'raw' => $data
-    ];
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/TelnyxSMS.php';
+
+$apiKey = (string)get_setting($pdo, 'telnyx_api_key', '');
+$fromNumber = (string)get_setting($pdo, 'telnyx_from_number', '');
+
+if ($apiKey === '' || $fromNumber === '') {
+  throw new RuntimeException('Missing SMS settings (telnyx_api_key / telnyx_from_number)');
 }
 
-/**
- * Format phone number to E.164
- */
-function format_e164($phone) {
-    // Remove all non-digits
-    $digits = preg_replace('/\D/', '', $phone);
-    
-    // Handle US numbers
-    if (strlen($digits) === 10) {
-        return '+1' . $digits;
-    } elseif (strlen($digits) === 11 && $digits[0] === '1') {
-        return '+' . $digits;
-    }
-    
-    // Already formatted or international
-    if (strpos($phone, '+') === 0) {
-        return $phone;
-    }
-    
-    return '+' . $digits;
-}
+$sms = new TelnyxSMS([
+  'api_key' => $apiKey,
+  'from_number' => $fromNumber,
+]);
+
+$result = $sms->send('+15551234567', '[Brand Name]: Test message');
+var_dump($result);
 ```
 
-### Send MMS Function
+### Sending templates
+
+Templates in `TelnyxSMS::TEMPLATES` require `brand_name` to be passed in by the caller (settings-driven):
 
 ```php
 <?php
-/**
- * Send MMS via Telnyx API
- * 
- * @param string $to Recipient phone number
- * @param string $message Message content
- * @param array $media_urls Array of media URLs
- * @return array Response data
- */
-function send_mms($to, $message, $media_urls) {
-    $api_key = getenv('TELNYX_API_KEY');
-  $from_number = getenv('TELNYX_FROM_NUMBER') ?: '+15551234567';
-    
-    $payload = [
-        'from' => $from_number,
-        'to' => format_e164($to),
-        'text' => $message,
-        'media_urls' => $media_urls,
-        'type' => 'MMS'
-    ];
-    
-    $ch = curl_init('https://api.telnyx.com/v2/messages');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $api_key,
-            'Content-Type: application/json'
-        ],
-        CURLOPT_POSTFIELDS => json_encode($payload)
-    ]);
-    
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    
-    return [
-        'success' => $http_code === 200,
-        'data' => json_decode($response, true)
-    ];
-}
+$brandName = (string)get_setting($pdo, 'sms_brand_name', '');
+
+$result = $sms->sendTemplate('+15551234567', 'ticket_created', [
+  'brand_name' => $brandName,
+  'ticket_id' => 'SR-2026-0142',
+  'service_type' => 'Flat tire repair',
+  'location' => '1234 Main St',
+]);
 ```
 
 ---
@@ -280,11 +200,11 @@ PATCH /messaging_profiles/{profile_id}
 ### Example
 
 ```bash
-curl -X PATCH "https://api.telnyx.com/v2/messaging_profiles/40019be9-93d9-478c-96ee-a90883641625" \
+curl -X PATCH "https://api.telnyx.com/v2/messaging_profiles/YOUR_MESSAGING_PROFILE_ID" \
   -H "Authorization: Bearer $TELNYX_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "webhook_url": "https://your-domain.com/api/sms/webhook.php",
+    "webhook_url": "https://YOURDOMAIN.com/sms-webhook/webhook.php",
     "webhook_failover_url": "https://backup.your-domain.com/webhook.php"
   }'
 ```
