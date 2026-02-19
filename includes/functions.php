@@ -9,7 +9,14 @@ function sanitize_input($data) {
 }
 
 function generate_invoice_number() {
-    return 'INV-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+    static $nonce = 0;
+    $nonce++;
+
+    // Not for security; just to reduce collisions in the UI.
+    $seed = microtime(true) . '|' . (string)$nonce;
+    $n = (hexdec(substr(hash('sha256', $seed), 0, 8)) % 9999) + 1;
+
+    return 'INV-' . date('Y') . '-' . str_pad((string)$n, 4, '0', STR_PAD_LEFT);
 }
 
 function format_currency($amount) {
