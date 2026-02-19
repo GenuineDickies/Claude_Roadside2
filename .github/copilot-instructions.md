@@ -43,3 +43,4 @@ App runs directly from workspace — edits are live immediately.
 - Scope page styles with prefixes (.customers-*, .invoices-*)
 - Prepared statements for all SQL queries
 - XSS protection with htmlspecialchars()
+- **Phone numbers:** Format as (xxx) xxx-xxxx — use `class="phone-masked"` on inputs, `format_phone()` for display

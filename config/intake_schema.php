@@ -140,6 +140,47 @@ function bootstrap_intake_schema(PDO $pdo): void {
             KEY idx_ticket (service_ticket_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
+        // SMS Consent — phone-level consent state
+        // Rules:
+        // - Default: consent=0, opted_out=0
+        // - We only send SMS when consent=1 and opted_out=0
+        // - Consent can only switch 0 -> 1 via explicit grant
+        // - Opt-out never flips consent; it records opt_out_at (and sets opted_out=1)
+        "CREATE TABLE IF NOT EXISTS sms_consent (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            phone_digits VARCHAR(20) NOT NULL,
+            consent TINYINT(1) NOT NULL DEFAULT 0,
+            consent_at TIMESTAMP NULL DEFAULT NULL,
+            opted_out TINYINT(1) NOT NULL DEFAULT 0,
+            opt_out_at TIMESTAMP NULL DEFAULT NULL,
+            last_source VARCHAR(50) DEFAULT NULL,
+            last_ticket_id INT DEFAULT NULL,
+            last_ticket_number VARCHAR(20) DEFAULT NULL,
+            last_seen_at TIMESTAMP NULL DEFAULT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uniq_phone (phone_digits),
+            KEY idx_consent (consent),
+            KEY idx_opted_out (opted_out),
+            KEY idx_last_seen (last_seen_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // SMS Consent Events — append-only audit log
+        "CREATE TABLE IF NOT EXISTS sms_consent_events (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            phone_digits VARCHAR(20) NOT NULL,
+            event_type VARCHAR(30) NOT NULL,
+            source VARCHAR(50) DEFAULT NULL,
+            ticket_id INT DEFAULT NULL,
+            ticket_number VARCHAR(20) DEFAULT NULL,
+            user_id INT DEFAULT NULL,
+            meta JSON DEFAULT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            KEY idx_phone (phone_digits),
+            KEY idx_event (event_type),
+            KEY idx_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
         // Service categories for dropdown population
         "CREATE TABLE IF NOT EXISTS service_categories (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -169,6 +210,30 @@ function bootstrap_intake_schema(PDO $pdo): void {
     foreach ($tables as $sql) {
         try { $pdo->exec($sql); } catch (PDOException $e) { /* exists */ }
     }
+
+    // Migrations for early SMS consent schemas (safe, best-effort)
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN consent TINYINT(1) NOT NULL DEFAULT 0"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN consent_at TIMESTAMP NULL DEFAULT NULL"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN opted_out TINYINT(1) NOT NULL DEFAULT 0"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN opt_out_at TIMESTAMP NULL DEFAULT NULL"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN last_seen_at TIMESTAMP NULL DEFAULT NULL"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN last_source VARCHAR(50) DEFAULT NULL"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN last_ticket_id INT DEFAULT NULL"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent ADD COLUMN last_ticket_number VARCHAR(20) DEFAULT NULL"); } catch (PDOException $e) {}
+
+    // If an older 'status' column existed, map consent when possible
+    try {
+        $pdo->exec("UPDATE sms_consent SET consent = CASE WHEN status = 'consented' THEN 1 ELSE consent END WHERE status IS NOT NULL");
+        $pdo->exec("UPDATE sms_consent SET last_seen_at = COALESCE(last_seen_at, last_event_at)");
+    } catch (PDOException $e) {}
+
+    // Evolve sms_consent_events from ENUM(event) to flexible VARCHAR(event_type)
+    try { $pdo->exec("ALTER TABLE sms_consent_events CHANGE COLUMN event event_type VARCHAR(30) NOT NULL"); } catch (PDOException $e) {}
+    try { $pdo->exec("ALTER TABLE sms_consent_events ADD COLUMN meta JSON DEFAULT NULL"); } catch (PDOException $e) {}
+    // Normalize early values
+    try {
+        $pdo->exec("UPDATE sms_consent_events SET event_type = CASE WHEN event_type = 'consented' THEN 'consent_granted' WHEN event_type = 'declined' THEN 'ticket_created' ELSE event_type END");
+    } catch (PDOException $e) {}
 
     // Seed service categories & types
     $catCount = $pdo->query("SELECT COUNT(*) FROM service_categories")->fetchColumn();

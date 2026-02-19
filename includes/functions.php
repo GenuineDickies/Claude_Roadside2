@@ -126,6 +126,41 @@ function redirect($url) {
     exit;
 }
 
+/**
+ * Get a setting value from the settings table
+ * @param PDO $pdo Database connection
+ * @param string $key Setting key
+ * @param string $default Default value if not found
+ * @return string Setting value
+ */
+function get_setting($pdo, $key, $default = '') {
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = ?");
+        $stmt->execute([$key]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['setting_value'] : $default;
+    } catch (PDOException $e) {
+        return $default;
+    }
+}
+
+/**
+ * Set a setting value in the settings table
+ * @param PDO $pdo Database connection
+ * @param string $key Setting key
+ * @param string $value Setting value
+ * @param string $category Setting category
+ * @return bool Success
+ */
+function set_setting($pdo, $key, $value, $category = 'general') {
+    try {
+        $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = ?, updated_at = CURRENT_TIMESTAMP");
+        return $stmt->execute([$key, $value, $category, $value]);
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
 function show_alert($message, $type = 'info') {
     echo "<div class='alert alert-{$type} alert-dismissible fade show' role='alert'>
             {$message}

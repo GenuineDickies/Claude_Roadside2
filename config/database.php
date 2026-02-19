@@ -37,6 +37,18 @@ $pdo->exec("SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO'");
 
 // Create tables in order (completely clean, no constraints initially)
 $tables = [
+    "CREATE TABLE IF NOT EXISTS settings (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        setting_key VARCHAR(100) NOT NULL,
+        setting_value TEXT NOT NULL,
+        category VARCHAR(50) NOT NULL DEFAULT 'general',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uniq_setting_key (setting_key),
+        KEY idx_category (category)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
     "CREATE TABLE IF NOT EXISTS users (
         id INT(11) NOT NULL AUTO_INCREMENT,
         username VARCHAR(50) NOT NULL,
@@ -153,5 +165,20 @@ try {
 } catch (PDOException $e) {
     // User might already exist, continue anyway
     error_log("Note: Default admin user might already exist: " . $e->getMessage());
+}
+
+// Seed settings defaults
+try {
+    // Local webhook poll key (used to run the poller without a session, e.g. cron)
+    // Only generate if missing or blank; never overwrite an existing non-empty key.
+    $generatedLocalKey = bin2hex(random_bytes(16)); // 32 hex chars
+    $stmt2 = $pdo->prepare("INSERT INTO settings (setting_key, setting_value, category)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            setting_value = CASE WHEN setting_value IS NULL OR setting_value = '' THEN VALUES(setting_value) ELSE setting_value END,
+            category = VALUES(category)");
+    $stmt2->execute(['sms_webhook_local_key', $generatedLocalKey, 'sms']);
+} catch (PDOException $e) {
+    error_log("Note: Could not seed settings defaults: " . $e->getMessage());
 }
 ?>

@@ -4,6 +4,24 @@
 
 // ─── Customer Phone Lookup ──────────────────────────────────────────
 let lookupTimer = null;
+let selectedCustomerPhoneDigits = '';
+
+function setSelectedCustomerId(id, phoneDigits = '') {
+    const hidden = document.getElementById('selectedCustomerId');
+    if (hidden) hidden.value = id ? String(id) : '';
+    selectedCustomerPhoneDigits = phoneDigits || '';
+}
+
+function clearSelectedCustomerIfPhoneChanged() {
+    const phoneInput = document.querySelector('input[name="customer_phone"]');
+    if (!phoneInput) return;
+    const digits = phoneGetRawDigits(phoneInput);
+    if (!selectedCustomerPhoneDigits) return;
+    if (digits && digits !== selectedCustomerPhoneDigits) {
+        setSelectedCustomerId('', '');
+    }
+}
+
 document.getElementById('custLookupPhone')?.addEventListener('input', function() {
     clearTimeout(lookupTimer);
     const phone = phoneGetRawDigits(this);
@@ -17,6 +35,7 @@ document.getElementById('customerPhone')?.addEventListener('input', function() {
     if (phone.length >= 6) {
         lookupTimer = setTimeout(() => lookupCustomer(phone), 400);
     }
+    clearSelectedCustomerIfPhoneChanged();
     updateSummary();
 });
 
@@ -27,7 +46,7 @@ async function lookupCustomer(phone) {
         const panel = document.getElementById('custLookupResults');
         if (json.success && json.data.length) {
             panel.innerHTML = json.data.map(c => `
-                <div class="intake-cust-card" onclick="fillCustomer(${JSON.stringify(c).replace(/"/g, '&quot;')})">
+                <div class="intake-cust-card" role="button" tabindex="0" data-customer-id="${c.id}">
                     <div class="name">${c.first_name} ${c.last_name}</div>
                     <div class="phone">${c.phone}</div>
                     <div class="meta">${c.email || ''} ${c.last_service ? '· Last: ' + c.last_service.substring(0,10) : ''}</div>
@@ -39,12 +58,27 @@ async function lookupCustomer(phone) {
     } catch(e) {}
 }
 
+async function fetchCustomerById(id) {
+    try {
+        const res = await fetch(`${API_TICKETS}?action=customer_get&id=${encodeURIComponent(id)}`);
+        const json = await res.json();
+        if (json.success && json.data) fillCustomer(json.data);
+    } catch(e) {}
+}
+
 function fillCustomer(cust) {
     customerData = cust;
+
+    const custPhoneDigits = (cust.phone || '').replace(/\D/g, '').slice(0, 10);
+    setSelectedCustomerId(cust.id || '', custPhoneDigits);
+
     const phoneInput = document.querySelector('input[name="customer_phone"]');
-    const phoneDigits = (cust.phone || '').replace(/\D/g, '').slice(0, 10);
-    phoneMaskApply(phoneInput, phoneDigits);
-    document.querySelector('input[name="customer_name"]').value = cust.first_name + ' ' + cust.last_name;
+    phoneMaskApply(phoneInput, custPhoneDigits);
+    // Fill separate first/last name fields
+    const firstNameInput = document.querySelector('input[name="first_name"]');
+    const lastNameInput = document.querySelector('input[name="last_name"]');
+    if (firstNameInput) firstNameInput.value = cust.first_name || '';
+    if (lastNameInput) lastNameInput.value = cust.last_name || '';
     if (cust.email) document.querySelector('input[name="customer_email"]').value = cust.email;
 
     if (cust.vehicles && cust.vehicles.length) {
@@ -87,7 +121,7 @@ async function loadRecentCustomers() {
         const panel = document.getElementById('recentCustomersPanel');
         if (json.success && json.data.length) {
             panel.innerHTML = json.data.slice(0, 8).map(c => `
-                <div class="intake-cust-card" onclick="lookupAndFill('${c.phone}')">
+                <div class="intake-cust-card" role="button" tabindex="0" data-customer-id="${c.id}">
                     <div class="name">${c.first_name} ${c.last_name}</div>
                     <div class="phone">${c.phone}</div>
                     <div class="meta">${c.last_service_type ? c.last_service_type.replace(/_/g,' ') : ''} ${c.last_service_date ? '· ' + c.last_service_date.substring(0,10) : ''}</div>
@@ -104,3 +138,19 @@ async function lookupAndFill(phone) {
     const json = await res.json();
     if (json.success && json.data.length) fillCustomer(json.data[0]);
 }
+
+// Click handlers (event delegation) for lookup + recent cards
+document.getElementById('custLookupResults')?.addEventListener('click', (e) => {
+    const card = e.target.closest('.intake-cust-card');
+    const id = card?.dataset?.customerId;
+    if (id) fetchCustomerById(id);
+});
+
+document.getElementById('recentCustomersPanel')?.addEventListener('click', (e) => {
+    const card = e.target.closest('.intake-cust-card');
+    const id = card?.dataset?.customerId;
+    if (id) fetchCustomerById(id);
+});
+
+// If operator edits the quick-entry phone, clear selected customer if mismatch
+document.getElementById('qePhone')?.addEventListener('input', clearSelectedCustomerIfPhoneChanged);

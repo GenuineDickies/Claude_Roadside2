@@ -107,11 +107,86 @@
 .qe-cat-pill i { font-size: 10px; }
 
 /* Mirror sync indicator */
-.intake-input.synced, .intake-textarea.synced {
+.intake-input.synced, .intake-textarea.synced, .intake-select.synced {
     border-color: rgba(43,94,167,0.4) !important;
     animation: qeSyncFlash 0.4s ease;
 }
 @keyframes qeSyncFlash {
     0% { box-shadow: 0 0 0 3px rgba(43,94,167,0.25); }
     100% { box-shadow: none; }
+}
+
+/* ── View Mode Toggle (Cash/Retail vs Bulk/Motor Club) ─────────────── */
+.intake-view-toggle {
+    background: linear-gradient(135deg, rgba(43,94,167,0.08) 0%, rgba(18,21,27,0.95) 60%);
+    border: 2px solid rgba(43,94,167,0.25);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+}
+.intake-view-options {
+    display: flex;
+    gap: 12px;
+}
+@media (max-width: 576px) {
+    .intake-view-options { flex-direction: column; }
+}
+.intake-view-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.2);
+    border: 2px solid var(--border-medium);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.intake-view-option input[type="radio"] {
+    display: none;
+}
+.intake-view-option:hover {
+    border-color: var(--navy-500);
+    background: rgba(43,94,167,0.06);
+}
+.intake-view-option.selected {
+    border-color: var(--navy-500);
+    background: rgba(43,94,167,0.12);
+    box-shadow: 0 0 16px rgba(43,94,167,0.15), inset 0 0 20px rgba(43,94,167,0.05);
+}
+.intake-view-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(43,94,167,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+.intake-view-option.selected .intake-view-icon {
+    background: rgba(43,94,167,0.25);
+    color: var(--navy-300);
+    box-shadow: 0 0 12px rgba(43,94,167,0.2);
+}
+.intake-view-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.intake-view-text strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+.intake-view-option.selected .intake-view-text strong {
+    color: var(--navy-300);
+}
+.intake-view-text small {
+    font-size: 11px;
+    color: var(--text-tertiary);
 }

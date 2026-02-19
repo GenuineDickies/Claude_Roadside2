@@ -21,10 +21,21 @@ switch ($action) {
         }
 
         // Find or create customer
-        $phone = preg_replace('/\D/', '', $_POST['customer_phone']);
-        $stmt = $pdo->prepare("SELECT id FROM customers WHERE REPLACE(REPLACE(REPLACE(phone,'-',''),'(',''),')','') = ?");
-        $stmt->execute([$phone]);
-        $customerId = $stmt->fetchColumn();
+        $customerId = null;
+        $requestedCustomerId = intval($_POST['customer_id'] ?? 0);
+        if ($requestedCustomerId > 0) {
+            $cStmt = $pdo->prepare("SELECT id FROM customers WHERE id = ?");
+            $cStmt->execute([$requestedCustomerId]);
+            $customerId = $cStmt->fetchColumn();
+        }
+
+        // Fallback: match by phone if no explicit customer_id (or invalid)
+        if (!$customerId) {
+            $phone = preg_replace('/\D/', '', $_POST['customer_phone']);
+            $stmt = $pdo->prepare("SELECT id FROM customers WHERE REPLACE(REPLACE(REPLACE(phone,'-',''),'(',''),')','') = ?");
+            $stmt->execute([$phone]);
+            $customerId = $stmt->fetchColumn();
+        }
 
         if (!$customerId) {
             $nameParts = explode(' ', trim($_POST['customer_name']), 2);
@@ -121,6 +132,59 @@ switch ($action) {
 
         $ticketId = $pdo->lastInsertId();
         ticket_log($pdo, $ticketId, 'created', null, 'created', "Ticket {$ticketNum} created" . ($rapid ? ' (Rapid Dispatch)' : ''));
+
+        // SMS Consent tracking (phone-level)
+        // - Default consent=0, opted_out=0
+        // - Only flip consent 0->1 when explicitly granted
+        // - Always ensure the phone exists in sms_consent
+        try {
+            $phoneDigits = preg_replace('/\D/', '', $_POST['customer_phone']);
+            if ($phoneDigits !== '') {
+                $consentVal = (string)($_POST['sms_consent'] ?? '0');
+
+                // Ensure row exists (default consent=0)
+                $ins = $pdo->prepare("INSERT IGNORE INTO sms_consent (phone_digits, last_source, last_ticket_id, last_ticket_number, last_seen_at)
+                    VALUES (?, 'intake', ?, ?, NOW())");
+                $ins->execute([$phoneDigits, $ticketId, $ticketNum]);
+
+                // Keep last-seen metadata fresh
+                $updSeen = $pdo->prepare("UPDATE sms_consent
+                    SET last_source='intake', last_ticket_id=?, last_ticket_number=?, last_seen_at=NOW()
+                    WHERE phone_digits=?");
+                $updSeen->execute([$ticketId, $ticketNum, $phoneDigits]);
+
+                // Grant consent only if currently 0
+                $consentChanged = false;
+                if ($consentVal === '1') {
+                    $grant = $pdo->prepare("UPDATE sms_consent
+                        SET consent=1,
+                            consent_at=COALESCE(consent_at, NOW()),
+                            opted_out=0,
+                            opt_out_at=NULL,
+                            last_source='intake',
+                            last_ticket_id=?,
+                            last_ticket_number=?,
+                            last_seen_at=NOW()
+                        WHERE phone_digits=? AND consent=0");
+                    $grant->execute([$ticketId, $ticketNum, $phoneDigits]);
+                    $consentChanged = $grant->rowCount() > 0;
+                }
+
+                // Always append an audit event
+                $eventType = $consentChanged ? 'consent_granted' : 'ticket_created';
+                $meta = json_encode([
+                    'sms_consent_submitted' => ($consentVal === '1') ? 1 : 0,
+                    'consent_changed' => $consentChanged ? 1 : 0
+                ]);
+
+                $ev = $pdo->prepare("INSERT INTO sms_consent_events (phone_digits, event_type, source, ticket_id, ticket_number, user_id, meta)
+                    VALUES (?, ?, 'intake', ?, ?, ?, ?)");
+                $ev->execute([$phoneDigits, $eventType, $ticketId, $ticketNum, $_SESSION['user_id'] ?? null, $meta]);
+            }
+        } catch (Exception $e) {
+            // Consent tracking should never block ticket creation
+            error_log('SMS consent tracking error: ' . $e->getMessage());
+        }
 
         echo json_encode(['success' => true, 'data' => ['id' => $ticketId, 'ticket_number' => $ticketNum]]);
         break;

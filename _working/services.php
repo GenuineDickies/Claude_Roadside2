@@ -1,736 +1,630 @@
 <?php
-// Services page - integrated with main app navigation
+/**
+ * Service Catalog — Services & Parts Management
+ * Two tabs: Services (from service_types) and Parts (from parts_inventory)
+ * Full CRUD with database integration
+ */
+
+// Fetch services with category info
+$services = $pdo->query("
+    SELECT st.*, sc.name as category_name, sc.slug as category_slug 
+    FROM service_types st 
+    JOIN service_categories sc ON st.category_id = sc.id 
+    ORDER BY sc.sort_order, st.name
+")->fetchAll();
+
+// Fetch categories for dropdowns
+$categories = $pdo->query("SELECT * FROM service_categories WHERE active = 1 ORDER BY sort_order")->fetchAll();
+
+// Fetch parts
+$parts = $pdo->query("SELECT * FROM parts_inventory ORDER BY category, name")->fetchAll();
+
+// Get unique part categories
+$partCategories = $pdo->query("SELECT DISTINCT category FROM parts_inventory WHERE category IS NOT NULL ORDER BY category")->fetchAll(PDO::FETCH_COLUMN);
 ?>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-<style>
-/* Service Catalog Specific Styles */
-.service-catalog-container {
-    margin: -1rem;
-    min-height: calc(100vh - 120px);
-}
+<link rel="stylesheet" href="assets/css/pages/catalog.css?v=20260216-2">
 
-.service-catalog-container .app-header {
-    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-secondary) 100%);
-    border-bottom: 2px solid var(--navy-500);
-    padding: 24px 28px;
-}
-
-.service-catalog-container .header-content {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.service-catalog-container .header-icon {
-    font-size: 26px;
-    color: var(--navy-300);
-}
-
-.service-catalog-container .header-title-group h1 {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--navy-300);
-    letter-spacing: -0.5px;
-    margin: 0;
-}
-
-.service-catalog-container .header-subtitle {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin: 0;
-    margin-top: 2px;
-}
-
-.service-catalog-container .tab-nav {
-    display: flex;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-subtle);
-}
-
-.service-catalog-container .tab-button {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    padding: 14px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all var(--transition-fast);
-    position: relative;
-}
-
-.service-catalog-container .tab-button:hover {
-    color: var(--text-primary);
-    background: var(--bg-surface-hover);
-}
-
-.service-catalog-container .tab-button.active {
-    color: var(--navy-300);
-    border-bottom-color: var(--navy-500);
-    background: var(--bg-surface);
-}
-
-.service-catalog-container .container-body {
-    padding: 28px;
-}
-
-.service-catalog-container .content-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.service-catalog-container .toolbar-spacer {
-    flex: 1;
-}
-
-.service-catalog-container .form-input {
-    background: var(--bg-input);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    color: var(--text-primary);
-    font-size: 13px;
-    min-width: 280px;
-    transition: all var(--transition-fast);
-}
-
-.service-catalog-container .form-input:focus {
-    outline: none;
-    border-color: var(--navy-400);
-    box-shadow: 0 0 0 3px var(--navy-glow);
-}
-
-.service-catalog-container .form-input::placeholder {
-    color: var(--text-tertiary);
-}
-
-.service-catalog-container .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-}
-
-.service-catalog-container .data-table thead th {
-    background: var(--bg-secondary);
-    color: var(--text-tertiary);
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 14px 20px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-medium);
-}
-
-.service-catalog-container .data-table tbody td {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-subtle);
-    color: var(--text-primary);
-    font-size: 13px;
-}
-
-.service-catalog-container .data-table tbody tr:hover {
-    background: var(--bg-surface-hover);
-}
-
-.service-catalog-container .table-code {
-    font-family: var(--font-mono);
-    color: var(--navy-300);
-    font-size: 12px;
-}
-
-.service-catalog-container .table-name {
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.service-catalog-container .table-description {
-    color: var(--text-secondary);
-    max-width: 300px;
-}
-
-.service-catalog-container .table-money {
-    font-family: var(--font-mono);
-    font-weight: 600;
-}
-
-.service-catalog-container .color-success {
-    color: var(--green-500);
-}
-
-.service-catalog-container .color-warning {
-    color: var(--amber-500);
-}
-
-.service-catalog-container .color-error {
-    color: var(--red-500);
-}
-
-.service-catalog-container .color-muted {
-    color: var(--text-tertiary);
-}
-
-.service-catalog-container .badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.service-catalog-container .status-chip {
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    border: none;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.service-catalog-container .status-chip.active {
-    background: var(--green-glow);
-    color: var(--green-500);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.service-catalog-container .status-chip.inactive {
-    background: rgba(92, 100, 120, 0.2);
-    color: var(--text-tertiary);
-    border: 1px solid rgba(92, 100, 120, 0.3);
-}
-
-.service-catalog-container .status-chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.service-catalog-container .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.service-catalog-container .modal {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-lg);
-    width: 600px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.service-catalog-container .modal-header {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-medium);
-    padding: 20px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.service-catalog-container .modal-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: 0.5px;
-    margin: 0;
-}
-
-.service-catalog-container .modal-close {
-    background: none;
-    border: none;
-    color: var(--text-tertiary);
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-sm);
-    transition: all var(--transition-fast);
-}
-
-.service-catalog-container .modal-close:hover {
-    background: var(--bg-surface-hover);
-    color: var(--text-primary);
-}
-
-.service-catalog-container .modal-body {
-    padding: 24px;
-    overflow-y: auto;
-    flex: 1;
-}
-
-.service-catalog-container .modal-footer {
-    border-top: 1px solid var(--border-subtle);
-    padding: 20px 24px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
-.service-catalog-container .form-field {
-    margin-bottom: 20px;
-}
-
-.service-catalog-container .form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-}
-
-.service-catalog-container .form-select,
-.service-catalog-container .form-textarea {
-    background: var(--bg-input);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    color: var(--text-primary);
-    font-size: 13px;
-    width: 100%;
-    transition: all var(--transition-fast);
-}
-
-.service-catalog-container .form-select:focus,
-.service-catalog-container .form-textarea:focus {
-    outline: none;
-    border-color: var(--navy-400);
-    box-shadow: 0 0 0 3px var(--navy-glow);
-}
-
-.service-catalog-container .form-textarea {
-    resize: vertical;
-    min-height: 80px;
-    font-family: var(--font-sans);
-}
-
-.service-catalog-container .form-checkbox-group {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 20px;
-}
-
-.service-catalog-container .checkbox-field {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.service-catalog-container .checkbox-field input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--navy-500);
-    cursor: pointer;
-}
-
-.service-catalog-container .checkbox-field label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    user-select: none;
-}
-
-.service-catalog-container .form-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
-
-.service-catalog-container .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-tertiary);
-    font-style: italic;
-}
-</style>
-
-<div class="service-catalog-container">
-    <div id="root"></div>
+<!-- Header -->
+<div class="catalog-header">
+    <div class="catalog-header-left">
+        <i class="fas fa-book-open" style="font-size:26px;color:var(--navy-300)"></i>
+        <div>
+            <h1>Service Catalog</h1>
+            <p class="subtitle">Manage services and parts inventory</p>
+        </div>
+    </div>
 </div>
 
-<script type="text/babel">
-const { useState, useEffect } = React;
+<!-- Tab Navigation -->
+<div class="catalog-tabs">
+    <button class="catalog-tab active" data-tab="services" onclick="switchTab('services', this)">
+        <i class="fas fa-wrench"></i> Services
+        <span class="tab-count" id="servicesCount"><?= count($services) ?></span>
+    </button>
+    <button class="catalog-tab" data-tab="parts" onclick="switchTab('parts', this)">
+        <i class="fas fa-cogs"></i> Parts
+        <span class="tab-count" id="partsCount"><?= count($parts) ?></span>
+    </button>
+</div>
 
-// Mock data - replace with API calls
-const initialServices = [
-  {service_id:1, service_code:"RSA-001", service_name:"Jump Start", service_category:"jump_start", description:"Battery boost service", requires_parts:false, mobile_capable:true, shop_only:false, is_active:true},
-  {service_id:2, service_code:"RSA-002", service_name:"Tire Change", service_category:"tire", description:"Replace flat tire with spare", requires_parts:false, mobile_capable:true, shop_only:false, is_active:true},
-  {service_id:3, service_code:"RSA-003", service_name:"Fuel Delivery", service_category:"fuel_delivery", description:"Emergency fuel delivery", requires_parts:true, mobile_capable:true, shop_only:false, is_active:true},
-  {service_id:4, service_code:"RSA-004", service_name:"Lockout Service", service_category:"lockout", description:"Vehicle entry assistance", requires_parts:false, mobile_capable:true, shop_only:false, is_active:true},
-  {service_id:5, service_code:"MNT-001", service_name:"Brake Pad Replacement", service_category:"maintenance", description:"Replace worn brake pads", requires_parts:true, mobile_capable:false, shop_only:true, is_active:true},
-  {service_id:6, service_code:"MNT-002", service_name:"Oil Change", service_category:"maintenance", description:"Engine oil and filter change", requires_parts:true, mobile_capable:true, shop_only:false, is_active:true},
-  {service_id:7, service_code:"REP-001", service_name:"Battery Replacement", service_category:"battery", description:"Install new battery", requires_parts:true, mobile_capable:true, shop_only:false, is_active:true},
-  {service_id:8, service_code:"DIG-001", service_name:"Diagnostic Scan", service_category:"diagnostic", description:"OBD-II diagnostic scanning", requires_parts:false, mobile_capable:true, shop_only:false, is_active:true},
-  {service_id:9, service_code:"TOW-001", service_name:"Towing Service", service_category:"towing", description:"Vehicle towing up to 50 miles", requires_parts:false, mobile_capable:true, shop_only:false, is_active:true},
-];
-
-const initialLabor = [
-  {labor_id:1, service_id:1, service_location:"mobile", standard_hours:0.5, labor_rate_per_hour:80, flat_rate_price:50, emergency_surcharge:25, after_hours_surcharge:15},
-  {labor_id:2, service_id:2, service_location:"mobile", standard_hours:0.75, labor_rate_per_hour:80, flat_rate_price:60, emergency_surcharge:30, after_hours_surcharge:20},
-  {labor_id:3, service_id:3, service_location:"mobile", standard_hours:0.5, labor_rate_per_hour:80, flat_rate_price:45, emergency_surcharge:20, after_hours_surcharge:15},
-  {labor_id:4, service_id:4, service_location:"mobile", standard_hours:1, labor_rate_per_hour:100, flat_rate_price:100, emergency_surcharge:50, after_hours_surcharge:30},
-  {labor_id:5, service_id:5, service_location:"shop", standard_hours:2, labor_rate_per_hour:90, flat_rate_price:180, emergency_surcharge:0, after_hours_surcharge:0},
-  {labor_id:6, service_id:6, service_location:"mobile", standard_hours:1, labor_rate_per_hour:80, flat_rate_price:75, emergency_surcharge:0, after_hours_surcharge:15},
-  {labor_id:7, service_id:6, service_location:"shop", standard_hours:0.75, labor_rate_per_hour:70, flat_rate_price:50, emergency_surcharge:0, after_hours_surcharge:0},
-  {labor_id:8, service_id:7, service_location:"mobile", standard_hours:0.5, labor_rate_per_hour:80, flat_rate_price:50, emergency_surcharge:20, after_hours_surcharge:15},
-];
-
-const CATEGORIES = ["diagnostic","repair","maintenance","roadside_emergency","towing","battery","tire","lockout","fuel_delivery","jump_start","other"];
-const LOCATIONS = ["mobile","shop","roadside"];
-
-function App() {
-  const [services, setServices] = useState(initialServices);
-  const [labor, setLabor] = useState(initialLabor);
-  const [activeTab, setActiveTab] = useState("services");
-  const [search, setSearch] = useState("");
-  const [modal, setModal] = useState(null);
-  const [form, setForm] = useState({});
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  const filteredServices = services.filter(s => 
-    s.service_name.toLowerCase().includes(search.toLowerCase()) ||
-    s.service_code.toLowerCase().includes(search.toLowerCase()) ||
-    s.description.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const filteredLabor = labor.filter(l => {
-    const service = services.find(s => s.service_id === l.service_id);
-    return service && (service.service_name.toLowerCase().includes(search.toLowerCase()) || service.service_code.toLowerCase().includes(search.toLowerCase()));
-  });
-
-  const handleOpenModal = (type, mode, data) => {
-    if (type === "service") {
-      setForm(mode === "add" ? {
-        service_code: "", service_name: "", service_category: "diagnostic", description: "",
-        requires_parts: false, mobile_capable: false, shop_only: false, is_active: true
-      } : { ...data });
-    } else {
-      setForm(mode === "add" ? {
-        service_id: "", service_location: "mobile", standard_hours: 1, labor_rate_per_hour: 80,
-        flat_rate_price: 0, emergency_surcharge: 0, after_hours_surcharge: 0
-      } : { ...data });
-    }
-    setModal({ type, mode });
-  };
-
-  const handleUpdateForm = (key, value) => {
-    setForm(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSaveService = () => {
-    if (modal.mode === "add") {
-      const newId = Math.max(...services.map(s => s.service_id), 0) + 1;
-      setServices([...services, { ...form, service_id: newId }]);
-    } else {
-      setServices(services.map(s => s.service_id === form.service_id ? form : s));
-    }
-    setModal(null);
-  };
-
-  const handleSaveLabor = () => {
-    if (modal.mode === "add") {
-      const newId = Math.max(...labor.map(l => l.labor_id), 0) + 1;
-      setLabor([...labor, { ...form, labor_id: newId, service_id: parseInt(form.service_id) }]);
-    } else {
-      setLabor(labor.map(l => l.labor_id === form.labor_id ? form : l));
-    }
-    setModal(null);
-  };
-
-  const handleDelete = () => {
-    if (deleteConfirm.type === "service") {
-      setServices(services.filter(s => s.service_id !== deleteConfirm.id));
-      setLabor(labor.filter(l => l.service_id !== deleteConfirm.id));
-    } else {
-      setLabor(labor.filter(l => l.labor_id !== deleteConfirm.id));
-    }
-    setDeleteConfirm(null);
-  };
-
-  const handleToggleActive = (serviceId) => {
-    setServices(services.map(s => s.service_id === serviceId ? { ...s, is_active: !s.is_active } : s));
-  };
-
-  const getServiceName = (serviceId) => {
-    const service = services.find(s => s.service_id === serviceId);
-    return service ? `${service.service_code} — ${service.service_name}` : "Unknown";
-  };
-
-  const formatCategoryLabel = (cat) => cat.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
-  const formatLocationLabel = (loc) => loc[0].toUpperCase() + loc.slice(1);
-
-  const CategoryBadge = ({ category }) => {
-    const colors = {
-      diagnostic: "var(--blue-500)", repair: "var(--red-500)", maintenance: "var(--green-500)",
-      roadside_emergency: "var(--amber-500)", towing: "var(--purple-500)", battery: "var(--amber-400)",
-      tire: "var(--blue-500)", lockout: "var(--purple-500)", fuel_delivery: "var(--amber-500)",
-      jump_start: "var(--amber-400)", other: "var(--text-tertiary)"
-    };
-    return (
-      <span className="badge" style={{ background: `${colors[category]}20`, color: colors[category], border: `1px solid ${colors[category]}` }}>
-        {formatCategoryLabel(category)}
-      </span>
-    );
-  };
-
-  const Modal = ({ title, onClose, children }) => (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">{title}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
+<!-- Services Tab Content -->
+<div class="catalog-content" id="tab-services">
+    <div class="catalog-toolbar">
+        <div class="catalog-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="servicesSearch" placeholder="Search services..." oninput="filterServices()">
         </div>
-        <div className="modal-body">{children}</div>
-      </div>
-    </div>
-  );
-
-  const FormField = ({ label, children }) => (
-    <div className="form-field">
-      <label className="form-label">{label}</label>
-      {children}
-    </div>
-  );
-
-  const CheckboxField = ({ label, checked, onChange }) => (
-    <div className="checkbox-field">
-      <input type="checkbox" checked={checked} onChange={onChange} />
-      <label onClick={onChange}>{label}</label>
-    </div>
-  );
-
-  return (
-    <div>
-      <div className="app-header">
-        <div className="header-content">
-          <i className="fas fa-wrench header-icon"></i>
-          <div className="header-title-group">
-            <h1>Service Catalog</h1>
-            <p className="header-subtitle">Manage services, pricing, and labor rates</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="tab-nav">
-        <button className={`tab-button ${activeTab === "services" ? "active" : ""}`} onClick={() => setActiveTab("services")}>
-          Services
+        <select class="catalog-filter" id="servicesCategoryFilter" onchange="filterServices()">
+            <option value="">All Categories</option>
+            <?php foreach ($categories as $cat): ?>
+                <option value="<?= htmlspecialchars($cat['slug']) ?>"><?= htmlspecialchars($cat['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <div class="toolbar-spacer"></div>
+        <button class="btn btn-primary" onclick="openServiceModal()">
+            <i class="fas fa-plus"></i> Add Service
         </button>
-        <button className={`tab-button ${activeTab === "labor" ? "active" : ""}`} onClick={() => setActiveTab("labor")}>
-          Labor Rates
-        </button>
-      </div>
+    </div>
 
-      <div className="container-body">
-        {activeTab === "services" && (
-          <>
-            <div className="content-toolbar">
-              <input className="form-input" placeholder="Search services..." value={search} onChange={e => setSearch(e.target.value)} />
-              <div className="toolbar-spacer" />
-              <button className="btn btn-primary" onClick={() => handleOpenModal("service", "add", null)}>+ Add Service</button>
-            </div>
-            <div style={{ overflowX: "auto" }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Code</th>
+    <div class="catalog-table-wrap">
+        <table class="catalog-table" id="servicesTable">
+            <thead>
+                <tr>
                     <th>Service</th>
                     <th>Category</th>
-                    <th>Description</th>
-                    <th>Parts</th>
-                    <th>Mobile</th>
+                    <th>Base Rate</th>
+                    <th>After Hours</th>
                     <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredServices.length === 0 ? (
-                    <tr><td colSpan={8} className="empty-state">No services found</td></tr>
-                  ) : filteredServices.map(s => (
-                    <tr key={s.service_id}>
-                      <td className="table-code">{s.service_code}</td>
-                      <td className="table-name">{s.service_name}</td>
-                      <td><CategoryBadge category={s.service_category} /></td>
-                      <td className="table-description">{s.description}</td>
-                      <td style={{ textAlign: "center", fontSize: 15 }}>{s.requires_parts ? "✓" : "—"}</td>
-                      <td style={{ textAlign: "center", fontSize: 15 }}>{s.mobile_capable ? "✓" : "—"}</td>
-                      <td>
-                        <button className={`status-chip ${s.is_active ? "active" : "inactive"}`} onClick={() => handleToggleActive(s.service_id)}>
-                          {s.is_active ? "ACTIVE" : "INACTIVE"}
-                        </button>
-                      </td>
-                      <td>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button className="btn btn-secondary" style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => handleOpenModal("service", "edit", s)}>Edit</button>
-                          <button className="btn btn-danger" style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setDeleteConfirm({ type: "service", id: s.service_id, name: s.service_name })}>Del</button>
-                        </div>
-                      </td>
+                    <th style="width:120px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="servicesBody">
+                <?php if (empty($services)): ?>
+                    <tr class="empty-row"><td colspan="6">No services found. Add your first service above.</td></tr>
+                <?php else: ?>
+                    <?php foreach ($services as $svc): ?>
+                    <tr data-id="<?= $svc['id'] ?>" data-category="<?= htmlspecialchars($svc['category_slug']) ?>" data-search="<?= htmlspecialchars(strtolower($svc['name'] . ' ' . $svc['slug'] . ' ' . $svc['category_name'])) ?>">
+                        <td>
+                            <div class="item-name"><?= htmlspecialchars($svc['name']) ?></div>
+                            <div class="item-code"><?= htmlspecialchars($svc['slug']) ?></div>
+                        </td>
+                        <td><span class="category-badge cat-<?= htmlspecialchars($svc['category_slug']) ?>"><?= htmlspecialchars($svc['category_name']) ?></span></td>
+                        <td class="money">$<?= number_format($svc['base_rate'], 2) ?></td>
+                        <td class="money after-hours">$<?= number_format($svc['after_hours_rate'], 2) ?></td>
+                        <td>
+                            <button class="status-toggle <?= $svc['active'] ? 'active' : 'inactive' ?>" onclick="toggleServiceStatus(<?= $svc['id'] ?>, this)">
+                                <?= $svc['active'] ? 'ACTIVE' : 'INACTIVE' ?>
+                            </button>
+                        </td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-icon" title="Edit" onclick="editService(<?= $svc['id'] ?>)"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-icon-danger" title="Delete" onclick="deleteService(<?= $svc['id'] ?>, '<?= htmlspecialchars(addslashes($svc['name'])) ?>')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-
-        {activeTab === "labor" && (
-          <>
-            <div className="content-toolbar">
-              <input className="form-input" placeholder="Search labor rates..." value={search} onChange={e => setSearch(e.target.value)} />
-              <div className="toolbar-spacer" />
-              <button className="btn btn-primary" onClick={() => handleOpenModal("labor", "add", null)}>+ Add Labor Rate</button>
-            </div>
-            <div style={{ overflowX: "auto" }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Service</th>
-                    <th>Location</th>
-                    <th>Std Hours</th>
-                    <th>Rate/Hr</th>
-                    <th>Flat Rate</th>
-                    <th>Emergency +</th>
-                    <th>After Hrs +</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLabor.length === 0 ? (
-                    <tr><td colSpan={8} className="empty-state">No labor rates found</td></tr>
-                  ) : filteredLabor.map(l => (
-                    <tr key={l.labor_id}>
-                      <td className="table-name">{getServiceName(l.service_id)}</td>
-                      <td><span className="badge" style={{ background: "var(--blue-glow)", color: "var(--blue-500)", borderColor: "var(--blue-500)", border: "1px solid" }}>{formatLocationLabel(l.service_location)}</span></td>
-                      <td style={{ fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>{l.standard_hours}h</td>
-                      <td className="table-money color-success">${l.labor_rate_per_hour.toFixed(2)}</td>
-                      <td className="table-money color-warning">${l.flat_rate_price.toFixed(2)}</td>
-                      <td className={`table-money ${l.emergency_surcharge ? "color-error" : "color-muted"}`}>{l.emergency_surcharge ? `+$${l.emergency_surcharge.toFixed(2)}` : "—"}</td>
-                      <td style={{ fontFamily: "var(--font-mono)", color: l.after_hours_surcharge ? "var(--purple-500)" : "var(--text-tertiary)" }}>{l.after_hours_surcharge ? `+$${l.after_hours_surcharge.toFixed(2)}` : "—"}</td>
-                      <td>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button className="btn btn-secondary" style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => handleOpenModal("labor", "edit", l)}>Edit</button>
-                          <button className="btn btn-danger" style={{ padding: "6px 12px", fontSize: 13 }} onClick={() => setDeleteConfirm({ type: "labor", id: l.labor_id, name: getServiceName(l.service_id) })}>Del</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* SERVICE MODAL */}
-      {modal && modal.type === "service" && (
-        <Modal title={`${modal.mode === "add" ? "ADD" : "EDIT"} SERVICE`} onClose={() => setModal(null)}>
-          <FormField label="Service Code">
-            <input className="form-input" value={form.service_code} onChange={e => handleUpdateForm("service_code", e.target.value)} placeholder="e.g. RSA-005" />
-          </FormField>
-          <FormField label="Service Name">
-            <input className="form-input" value={form.service_name} onChange={e => handleUpdateForm("service_name", e.target.value)} placeholder="e.g. Alternator Replacement" />
-          </FormField>
-          <FormField label="Category">
-            <select className="form-select" value={form.service_category} onChange={e => handleUpdateForm("service_category", e.target.value)}>
-              {CATEGORIES.map(c => <option key={c} value={c}>{formatCategoryLabel(c)}</option>)}
-            </select>
-          </FormField>
-          <FormField label="Description">
-            <textarea className="form-textarea" value={form.description} onChange={e => handleUpdateForm("description", e.target.value)} />
-          </FormField>
-          <div className="form-checkbox-group">
-            <CheckboxField label="Requires Parts" checked={form.requires_parts} onChange={() => handleUpdateForm("requires_parts", !form.requires_parts)} />
-            <CheckboxField label="Mobile Capable" checked={form.mobile_capable} onChange={() => handleUpdateForm("mobile_capable", !form.mobile_capable)} />
-            <CheckboxField label="Shop Only" checked={form.shop_only} onChange={() => handleUpdateForm("shop_only", !form.shop_only)} />
-          </div>
-          <CheckboxField label="Active" checked={form.is_active} onChange={() => handleUpdateForm("is_active", !form.is_active)} />
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleSaveService}>{modal.mode === "add" ? "Add Service" : "Save Changes"}</button>
-          </div>
-        </Modal>
-      )}
-
-      {/* LABOR MODAL */}
-      {modal && modal.type === "labor" && (
-        <Modal title={`${modal.mode === "add" ? "ADD" : "EDIT"} LABOR RATE`} onClose={() => setModal(null)}>
-          <FormField label="Service">
-            <select className="form-select" value={form.service_id} onChange={e => handleUpdateForm("service_id", e.target.value)}>
-              <option value="">— Select Service —</option>
-              {services.filter(s => s.is_active).map(s => <option key={s.service_id} value={s.service_id}>{s.service_code} — {s.service_name}</option>)}
-            </select>
-          </FormField>
-          <FormField label="Service Location">
-            <select className="form-select" value={form.service_location} onChange={e => handleUpdateForm("service_location", e.target.value)}>
-              {LOCATIONS.map(l => <option key={l} value={l}>{formatLocationLabel(l)}</option>)}
-            </select>
-          </FormField>
-          <div className="form-grid-2">
-            <FormField label="Standard Hours">
-              <input className="form-input" type="number" step="0.25" value={form.standard_hours} onChange={e => handleUpdateForm("standard_hours", e.target.value)} />
-            </FormField>
-            <FormField label="Rate / Hour ($)">
-              <input className="form-input" type="number" step="5" value={form.labor_rate_per_hour} onChange={e => handleUpdateForm("labor_rate_per_hour", e.target.value)} />
-            </FormField>
-            <FormField label="Flat Rate ($)">
-              <input className="form-input" type="number" step="5" value={form.flat_rate_price} onChange={e => handleUpdateForm("flat_rate_price", e.target.value)} />
-            </FormField>
-            <FormField label="Emergency Surcharge ($)">
-              <input className="form-input" type="number" step="5" value={form.emergency_surcharge} onChange={e => handleUpdateForm("emergency_surcharge", e.target.value)} />
-            </FormField>
-            <FormField label="After Hours Surcharge ($)">
-              <input className="form-input" type="number" step="5" value={form.after_hours_surcharge} onChange={e => handleUpdateForm("after_hours_surcharge", e.target.value)} />
-            </FormField>
-          </div>
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={() => setModal(null)}>Cancel</button>
-            <button className="btn btn-primary" onClick={handleSaveLabor}>{modal.mode === "add" ? "Add Rate" : "Save Changes"}</button>
-          </div>
-        </Modal>
-      )}
-
-      {/* DELETE CONFIRMATION */}
-      {deleteConfirm && (
-        <Modal title="CONFIRM DELETE" onClose={() => setDeleteConfirm(null)}>
-          <p style={{ color: "var(--text-secondary)", marginBottom: 6 }}>Are you sure you want to delete <strong style={{ color: "var(--color-error)" }}>{deleteConfirm.name}</strong>?</p>
-          {deleteConfirm.type === "service" && <p style={{ color: "var(--text-muted)", fontSize: 12 }}>This will also remove any associated labor rates.</p>}
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-            <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
-          </div>
-        </Modal>
-      )}
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </div>
-  );
+</div>
+
+<!-- Parts Tab Content -->
+<div class="catalog-content" id="tab-parts" style="display:none">
+    <div class="catalog-toolbar">
+        <div class="catalog-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="partsSearch" placeholder="Search parts..." oninput="filterParts()">
+        </div>
+        <select class="catalog-filter" id="partsCategoryFilter" onchange="filterParts()">
+            <option value="">All Categories</option>
+            <?php foreach ($partCategories as $cat): ?>
+                <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <div class="toolbar-spacer"></div>
+        <button class="btn btn-primary" onclick="openPartModal()">
+            <i class="fas fa-plus"></i> Add Part
+        </button>
+    </div>
+
+    <div class="catalog-table-wrap">
+        <table class="catalog-table" id="partsTable">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Unit Cost</th>
+                    <th>Markup</th>
+                    <th>Sell Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th style="width:120px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="partsBody">
+                <?php if (empty($parts)): ?>
+                    <tr class="empty-row"><td colspan="9">No parts found. Add your first part above.</td></tr>
+                <?php else: ?>
+                    <?php foreach ($parts as $part): 
+                        $sellPrice = $part['unit_cost'] * (1 + $part['markup_pct'] / 100);
+                    ?>
+                    <tr data-id="<?= $part['id'] ?>" data-category="<?= htmlspecialchars($part['category']) ?>" data-search="<?= htmlspecialchars(strtolower($part['part_number'] . ' ' . $part['name'] . ' ' . $part['category'])) ?>">
+                        <td class="mono"><?= htmlspecialchars($part['part_number']) ?></td>
+                        <td>
+                            <div class="item-name"><?= htmlspecialchars($part['name']) ?></div>
+                            <?php if ($part['description']): ?>
+                                <div class="item-desc"><?= htmlspecialchars(substr($part['description'], 0, 50)) ?></div>
+                            <?php endif; ?>
+                        </td>
+                        <td><span class="category-badge"><?= htmlspecialchars($part['category'] ?: '—') ?></span></td>
+                        <td class="money">$<?= number_format($part['unit_cost'], 2) ?></td>
+                        <td class="mono"><?= number_format($part['markup_pct'], 0) ?>%</td>
+                        <td class="money sell-price">$<?= number_format($sellPrice, 2) ?></td>
+                        <td class="mono <?= $part['quantity_on_hand'] <= $part['reorder_point'] ? 'low-stock' : '' ?>">
+                            <?= $part['quantity_on_hand'] ?>
+                            <?php if ($part['quantity_on_hand'] <= $part['reorder_point']): ?>
+                                <i class="fas fa-exclamation-triangle" title="Low stock"></i>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <button class="status-toggle <?= $part['active'] ? 'active' : 'inactive' ?>" onclick="togglePartStatus(<?= $part['id'] ?>, this)">
+                                <?= $part['active'] ? 'ACTIVE' : 'INACTIVE' ?>
+                            </button>
+                        </td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-icon" title="Edit" onclick="editPart(<?= $part['id'] ?>)"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-icon-danger" title="Delete" onclick="deletePart(<?= $part['id'] ?>, '<?= htmlspecialchars(addslashes($part['name'])) ?>')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Service Modal -->
+<div class="rr-modal-overlay hidden" id="serviceModal">
+    <div class="rr-modal">
+        <div class="rr-modal-header">
+            <h3 id="serviceModalTitle">Add Service</h3>
+            <button class="rr-modal-close" onclick="closeServiceModal()">&times;</button>
+        </div>
+        <div class="rr-modal-body">
+            <form id="serviceForm">
+                <input type="hidden" name="id" id="serviceId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Service Name <span class="req">*</span></label>
+                        <input type="text" name="name" id="serviceName" class="form-input" required placeholder="e.g. Jump Start">
+                    </div>
+                    <div class="form-group">
+                        <label>Slug / Code <span class="req">*</span></label>
+                        <input type="text" name="slug" id="serviceSlug" class="form-input mono" required placeholder="e.g. jump_start">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Category <span class="req">*</span></label>
+                    <select name="category_id" id="serviceCategory" class="form-select" required>
+                        <option value="">Select category...</option>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Base Rate ($) <span class="req">*</span></label>
+                        <input type="number" name="base_rate" id="serviceBaseRate" class="form-input mono" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>After Hours Rate ($)</label>
+                        <input type="number" name="after_hours_rate" id="serviceAfterHours" class="form-input mono" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" id="serviceDescription" class="form-textarea" rows="2" placeholder="Optional description..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="active" id="serviceActive" checked>
+                        <span>Active</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="rr-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeServiceModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveService()">Save Service</button>
+        </div>
+    </div>
+</div>
+
+<!-- Part Modal -->
+<div class="rr-modal-overlay hidden" id="partModal">
+    <div class="rr-modal rr-modal-lg">
+        <div class="rr-modal-header">
+            <h3 id="partModalTitle">Add Part</h3>
+            <button class="rr-modal-close" onclick="closePartModal()">&times;</button>
+        </div>
+        <div class="rr-modal-body">
+            <form id="partForm">
+                <input type="hidden" name="id" id="partId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Part Number <span class="req">*</span></label>
+                        <input type="text" name="part_number" id="partNumber" class="form-input mono" required placeholder="e.g. BAT-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" name="category" id="partCategory" class="form-input" placeholder="e.g. Batteries" list="partCategoriesList">
+                        <datalist id="partCategoriesList">
+                            <?php foreach ($partCategories as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat) ?>">
+                            <?php endforeach; ?>
+                        </datalist>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Part Name <span class="req">*</span></label>
+                    <input type="text" name="name" id="partName" class="form-input" required placeholder="e.g. Standard Car Battery">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" id="partDescription" class="form-textarea" rows="2" placeholder="Optional description..."></textarea>
+                </div>
+                <div class="form-row form-row-3">
+                    <div class="form-group">
+                        <label>Unit Cost ($) <span class="req">*</span></label>
+                        <input type="number" name="unit_cost" id="partUnitCost" class="form-input mono" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Markup (%)</label>
+                        <input type="number" name="markup_pct" id="partMarkup" class="form-input mono" step="1" min="0" value="50" placeholder="50">
+                    </div>
+                    <div class="form-group">
+                        <label>Sell Price</label>
+                        <input type="text" id="partSellPrice" class="form-input mono" readonly disabled>
+                    </div>
+                </div>
+                <div class="form-row form-row-3">
+                    <div class="form-group">
+                        <label>Qty on Hand</label>
+                        <input type="number" name="quantity_on_hand" id="partQty" class="form-input mono" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Reorder Point</label>
+                        <input type="number" name="reorder_point" id="partReorder" class="form-input mono" min="0" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label>Supplier</label>
+                        <input type="text" name="supplier" id="partSupplier" class="form-input" placeholder="Supplier name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="active" id="partActive" checked>
+                        <span>Active</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="rr-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closePartModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="savePart()">Save Part</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="rr-modal-overlay hidden" id="deleteModal">
+    <div class="rr-modal rr-modal-sm">
+        <div class="rr-modal-header">
+            <h3>Confirm Delete</h3>
+            <button class="rr-modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="rr-modal-body">
+            <p>Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+            <p class="text-muted">This action cannot be undone.</p>
+        </div>
+        <div class="rr-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Store data for JS operations
+const servicesData = <?= json_encode($services) ?>;
+const partsData = <?= json_encode($parts) ?>;
+
+// API endpoints
+const API_CATALOG = 'api/catalog.php';
+
+// Tab switching
+function switchTab(tab, btn) {
+    document.querySelectorAll('.catalog-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.catalog-content').forEach(c => c.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('tab-' + tab).style.display = 'block';
+
+    // Persist active tab across reloads
+    if (tab === 'services' || tab === 'parts') {
+        window.location.hash = tab;
+    }
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+// Restore active tab on load (after refresh/reload)
+(function restoreCatalogTab() {
+    const tab = (window.location.hash || '').replace('#', '');
+    if (tab !== 'services' && tab !== 'parts') return;
+    const btn = document.querySelector('.catalog-tab[data-tab="' + tab + '"]');
+    if (btn) switchTab(tab, btn);
+})();
+
+// ═══ SERVICES ════════════════════════════════════════════════════════
+
+function setCatalogBodyScrollLocked(locked) {
+    const body = document.body;
+    if (locked) {
+        if (body.dataset.prevOverflow === undefined) {
+            body.dataset.prevOverflow = body.style.overflow || '';
+        }
+        body.style.overflow = 'hidden';
+        return;
+    }
+    if (body.dataset.prevOverflow !== undefined) {
+        body.style.overflow = body.dataset.prevOverflow;
+        delete body.dataset.prevOverflow;
+    } else {
+        body.style.overflow = '';
+    }
+}
+
+function anyCatalogModalOpen() {
+    return ['serviceModal', 'partModal', 'deleteModal'].some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+    });
+}
+
+function syncCatalogScrollLock() {
+    setCatalogBodyScrollLocked(anyCatalogModalOpen());
+}
+
+function filterServices() {
+    const search = document.getElementById('servicesSearch').value.toLowerCase();
+    const category = document.getElementById('servicesCategoryFilter').value;
+    const rows = document.querySelectorAll('#servicesBody tr[data-id]');
+    let visible = 0;
+    
+    rows.forEach(row => {
+        const matchSearch = !search || row.dataset.search.includes(search);
+        const matchCat = !category || row.dataset.category === category;
+        const show = matchSearch && matchCat;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    
+    document.getElementById('servicesCount').textContent = visible;
+}
+
+function openServiceModal(data = null) {
+    document.getElementById('serviceModalTitle').textContent = data ? 'Edit Service' : 'Add Service';
+    document.getElementById('serviceId').value = data?.id || '';
+    document.getElementById('serviceName').value = data?.name || '';
+    document.getElementById('serviceSlug').value = data?.slug || '';
+    document.getElementById('serviceCategory').value = data?.category_id || '';
+    document.getElementById('serviceBaseRate').value = data?.base_rate || '';
+    document.getElementById('serviceAfterHours').value = data?.after_hours_rate || '';
+    document.getElementById('serviceDescription').value = data?.description || '';
+    document.getElementById('serviceActive').checked = data ? data.active == 1 : true;
+    document.getElementById('serviceModal').classList.remove('hidden');
+    syncCatalogScrollLock();
+}
+
+function closeServiceModal() {
+    document.getElementById('serviceModal').classList.add('hidden');
+    syncCatalogScrollLock();
+}
+
+function editService(id) {
+    const svc = servicesData.find(s => s.id == id);
+    if (svc) openServiceModal(svc);
+}
+
+async function saveService() {
+    const form = document.getElementById('serviceForm');
+    const fd = new FormData(form);
+    fd.append('action', fd.get('id') ? 'update_service' : 'create_service');
+    fd.append('active', document.getElementById('serviceActive').checked ? '1' : '0');
+    
+    try {
+        const res = await fetch(API_CATALOG, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (json.error || 'Unknown error'));
+        }
+    } catch(e) {
+        alert('Network error');
+    }
+}
+
+async function toggleServiceStatus(id, btn) {
+    const fd = new FormData();
+    fd.append('action', 'toggle_service_status');
+    fd.append('id', id);
+    
+    try {
+        const res = await fetch(API_CATALOG, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.success) {
+            const isActive = json.data.active;
+            btn.className = 'status-toggle ' + (isActive ? 'active' : 'inactive');
+            btn.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+        }
+    } catch(e) {}
+}
+
+function deleteService(id, name) {
+    document.getElementById('deleteItemName').textContent = name;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    syncCatalogScrollLock();
+    document.getElementById('deleteConfirmBtn').onclick = async () => {
+        const fd = new FormData();
+        fd.append('action', 'delete_service');
+        fd.append('id', id);
+        try {
+            const res = await fetch(API_CATALOG, { method: 'POST', body: fd });
+            const json = await res.json();
+            if (json.success) location.reload();
+            else alert('Error: ' + (json.error || 'Unknown'));
+        } catch(e) { alert('Network error'); }
+    };
+}
+
+// ═══ PARTS ═══════════════════════════════════════════════════════════
+
+function filterParts() {
+    const search = document.getElementById('partsSearch').value.toLowerCase();
+    const category = document.getElementById('partsCategoryFilter').value;
+    const rows = document.querySelectorAll('#partsBody tr[data-id]');
+    let visible = 0;
+    
+    rows.forEach(row => {
+        const matchSearch = !search || row.dataset.search.includes(search);
+        const matchCat = !category || row.dataset.category === category;
+        const show = matchSearch && matchCat;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    
+    document.getElementById('partsCount').textContent = visible;
+}
+
+function openPartModal(data = null) {
+    document.getElementById('partModalTitle').textContent = data ? 'Edit Part' : 'Add Part';
+    document.getElementById('partId').value = data?.id || '';
+    document.getElementById('partNumber').value = data?.part_number || '';
+    document.getElementById('partName').value = data?.name || '';
+    document.getElementById('partCategory').value = data?.category || '';
+    document.getElementById('partDescription').value = data?.description || '';
+    document.getElementById('partUnitCost').value = data?.unit_cost || '';
+    document.getElementById('partMarkup').value = data?.markup_pct ?? 50;
+    document.getElementById('partQty').value = data?.quantity_on_hand ?? 0;
+    document.getElementById('partReorder').value = data?.reorder_point ?? 5;
+    document.getElementById('partSupplier').value = data?.supplier || '';
+    document.getElementById('partActive').checked = data ? data.active == 1 : true;
+    updatePartSellPrice();
+    document.getElementById('partModal').classList.remove('hidden');
+    syncCatalogScrollLock();
+}
+
+function closePartModal() {
+    document.getElementById('partModal').classList.add('hidden');
+    syncCatalogScrollLock();
+}
+
+function editPart(id) {
+    const part = partsData.find(p => p.id == id);
+    if (part) openPartModal(part);
+}
+
+function updatePartSellPrice() {
+    const cost = parseFloat(document.getElementById('partUnitCost').value) || 0;
+    const markup = parseFloat(document.getElementById('partMarkup').value) || 0;
+    const sell = cost * (1 + markup / 100);
+    document.getElementById('partSellPrice').value = '$' + sell.toFixed(2);
+}
+
+document.getElementById('partUnitCost')?.addEventListener('input', updatePartSellPrice);
+document.getElementById('partMarkup')?.addEventListener('input', updatePartSellPrice);
+
+async function savePart() {
+    const form = document.getElementById('partForm');
+    const fd = new FormData(form);
+    fd.append('action', fd.get('id') ? 'update_part' : 'create_part');
+    fd.append('active', document.getElementById('partActive').checked ? '1' : '0');
+    
+    try {
+        const res = await fetch(API_CATALOG, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (json.error || 'Unknown error'));
+        }
+    } catch(e) {
+        alert('Network error');
+    }
+}
+
+async function togglePartStatus(id, btn) {
+    const fd = new FormData();
+    fd.append('action', 'toggle_part_status');
+    fd.append('id', id);
+    
+    try {
+        const res = await fetch(API_CATALOG, { method: 'POST', body: fd });
+        const json = await res.json();
+        if (json.success) {
+            const isActive = json.data.active;
+            btn.className = 'status-toggle ' + (isActive ? 'active' : 'inactive');
+            btn.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+        }
+    } catch(e) {}
+}
+
+function deletePart(id, name) {
+    document.getElementById('deleteItemName').textContent = name;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    syncCatalogScrollLock();
+    document.getElementById('deleteConfirmBtn').onclick = async () => {
+        const fd = new FormData();
+        fd.append('action', 'delete_part');
+        fd.append('id', id);
+        try {
+            const res = await fetch(API_CATALOG, { method: 'POST', body: fd });
+            const json = await res.json();
+            if (json.success) location.reload();
+            else alert('Error: ' + (json.error || 'Unknown'));
+        } catch(e) { alert('Network error'); }
+    };
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    syncCatalogScrollLock();
+}
+
+// Close modals on escape
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeServiceModal();
+        closePartModal();
+        closeDeleteModal();
+    }
+});
+
+// Auto-generate slug from name
+document.getElementById('serviceName')?.addEventListener('input', function() {
+    const slugField = document.getElementById('serviceSlug');
+    if (!slugField.value || slugField.dataset.auto === 'true') {
+        slugField.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+        slugField.dataset.auto = 'true';
+    }
+});
+document.getElementById('serviceSlug')?.addEventListener('input', function() {
+    this.dataset.auto = 'false';
+});
 </script>

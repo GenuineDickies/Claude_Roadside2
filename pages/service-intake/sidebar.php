@@ -75,10 +75,49 @@
         <button type="button" class="btn btn-secondary" onclick="saveDraft()">
             <i class="fas fa-save"></i> Save Draft
         </button>
-        <button type="button" class="btn btn-primary" onclick="submitTicket(false)" id="btnCreateTicket">
+        <button type="button" class="btn btn-primary" onclick="showSmsConsentModal()" id="btnCreateTicket">
             <i class="fas fa-ticket-alt"></i> Create Ticket
         </button>
     </div>
 </div>
 
 </form>
+
+<!-- SMS Consent Modal -->
+<div class="modal fade" id="smsConsentModal" tabindex="-1" aria-labelledby="smsConsentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:var(--bg-surface);border:1px solid var(--border-medium)">
+            <div class="modal-header" style="border-bottom:1px solid var(--border-subtle)">
+                <h5 class="modal-title" id="smsConsentModalLabel">
+                    <i class="fas fa-sms" style="color:var(--navy-300);margin-right:8px"></i>
+                    SMS Verbal Consent
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding:24px">
+                <div class="sms-consent-text" style="font-size:14px;line-height:1.7;color:var(--text-secondary)">
+                    <p style="margin-bottom:10px">
+                        Read this to the customer and confirm they agree:
+                    </p>
+                    <div style="background:var(--bg-surface-2);border:1px solid var(--border-medium);border-left:3px solid var(--navy-500);border-radius:12px;padding:14px 14px;margin:0 0 14px 0;color:var(--text-primary)">
+                        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.7">
+                            “By providing your phone number, you agree to receive Customer Care SMS from <strong style="color:var(--navy-300)"><?= htmlspecialchars($smsBrandName) ?></strong>. Message frequency may vary. Standard Message and Data Rates may apply. Reply <strong>STOP</strong> to opt out. Reply <strong>HELP</strong> for help. We will not share mobile information with third parties for promotional or marketing purposes.”
+                        </div>
+                        <span id="smsConsentPhone" class="d-none"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--border-subtle);gap:10px">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="confirmNoSmsConsentAndSubmit()">
+                    <i class="fas fa-ban"></i> No SMS — Create Ticket
+                </button>
+                <button type="button" class="btn btn-primary" onclick="confirmSmsConsentAndSubmit()">
+                    <i class="fas fa-check"></i> Consent Confirmed — Create Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

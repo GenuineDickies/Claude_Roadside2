@@ -43,22 +43,53 @@
                         <?php endif; ?>
                     </div>
                     <div class="sr-info-card">
-                        <h6><i class="fas fa-wrench"></i> Service</h6>
+                        <h6><i class="fas fa-car"></i> Vehicle</h6>
+                        <?php if (!empty($request['vehicle_year']) || !empty($request['vehicle_make']) || !empty($request['vehicle_model'])): ?>
                         <div class="sr-info-row">
-                            <span class="sr-label">Type</span>
-                            <span class="sr-value"><?php echo ucfirst(str_replace('_', ' ', $request['service_category'])); ?></span>
+                            <span class="sr-value" style="font-weight:600">
+                                <?php 
+                                $vehicle_parts = array_filter([
+                                    $request['vehicle_year'] ?? '',
+                                    $request['vehicle_make'] ?? '',
+                                    $request['vehicle_model'] ?? ''
+                                ]);
+                                echo htmlspecialchars(implode(' ', $vehicle_parts));
+                                ?>
+                            </span>
                         </div>
+                        <?php if (!empty($request['vehicle_color'])): ?>
                         <div class="sr-info-row">
-                            <span class="sr-label">Category</span>
-                            <span class="sr-value"><?php echo ucfirst(str_replace('_', ' ', $request['service_category'])); ?></span>
+                            <span class="sr-label">Color</span>
+                            <span class="sr-value"><?php echo htmlspecialchars($request['vehicle_color']); ?></span>
                         </div>
-                        <?php if ($request['tech_first_name']): ?>
+                        <?php endif; ?>
+                        <?php if (!empty($request['vehicle_plate'])): ?>
                         <div class="sr-info-row">
-                            <span class="sr-label">Tech</span>
-                            <span class="sr-value"><?php echo htmlspecialchars($request['tech_first_name'] . ' ' . $request['tech_last_name']); ?></span>
+                            <span class="sr-label">Plate</span>
+                            <span class="sr-value-mono"><?php echo htmlspecialchars(strtoupper($request['vehicle_plate'])); ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <?php else: ?>
+                        <div class="sr-info-row">
+                            <span class="sr-value text-muted">No vehicle info</span>
                         </div>
                         <?php endif; ?>
                     </div>
+                </div>
+
+                <!-- Service Info -->
+                <div class="sr-section">
+                    <h6><i class="fas fa-wrench"></i> Service</h6>
+                    <div class="sr-info-row">
+                        <span class="sr-label">Type</span>
+                        <span class="sr-value"><?php echo ucfirst(str_replace('_', ' ', $request['service_category'])); ?></span>
+                    </div>
+                    <?php if ($request['tech_first_name']): ?>
+                    <div class="sr-info-row">
+                        <span class="sr-label">Tech</span>
+                        <span class="sr-value"><?php echo htmlspecialchars($request['tech_first_name'] . ' ' . $request['tech_last_name']); ?></span>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Location -->

@@ -12,6 +12,10 @@
 // Fetch data for dropdowns
 $customersForDropdown = $pdo->query("SELECT id, first_name, last_name, phone FROM customers ORDER BY first_name")->fetchAll();
 $techsForDropdown = $pdo->query("SELECT id, first_name, last_name, specialization, status FROM technicians ORDER BY first_name")->fetchAll();
+
+// Get SMS brand name for consent modal
+$smsBrandName = trim((string)get_setting($pdo, 'sms_brand_name', ''));
+if ($smsBrandName === '') $smsBrandName = '[Brand Name]';
 ?>
 
 <link rel="stylesheet" href="assets/css/pages/intake-layout.css">

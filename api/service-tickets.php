@@ -16,7 +16,7 @@ function ticket_log($pdo, $ticketId, $action, $oldVal = null, $newVal = null, $d
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-$lookupActions = ['customer_lookup', 'customer_search', 'recent_customers', 'get_categories', 'get_services', 'estimate_cost', 'available_technicians', 'parse_shorthand'];
+$lookupActions = ['customer_lookup', 'customer_get', 'customer_search', 'recent_customers', 'get_categories', 'get_services', 'estimate_cost', 'available_technicians', 'parse_shorthand'];
 $ticketActions = ['create_ticket', 'assign_technician', 'dispatch', 'get_ticket', 'list_tickets'];
 
 if (in_array($action, $lookupActions, true)) {

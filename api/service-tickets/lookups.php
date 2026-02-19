@@ -2,6 +2,25 @@
 // Customer/catalog lookup handlers — included by api/service-tickets.php
 switch ($action) {
 
+    case 'customer_get':
+        $id = intval($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'error' => 'Missing id']);
+            break;
+        }
+        $stmt = $pdo->prepare("SELECT id, first_name, last_name, phone, email, address FROM customers WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        $cust = $stmt->fetch();
+        if (!$cust) {
+            echo json_encode(['success' => false, 'error' => 'Customer not found']);
+            break;
+        }
+        $vStmt = $pdo->prepare("SELECT * FROM customer_vehicles WHERE customer_id = ? ORDER BY id DESC");
+        $vStmt->execute([$cust['id']]);
+        $cust['vehicles'] = $vStmt->fetchAll();
+        echo json_encode(['success' => true, 'data' => $cust]);
+        break;
+
     case 'customer_lookup':
         $phone = preg_replace('/\D/', '', $_GET['phone'] ?? '');
         if (strlen($phone) < 6) {

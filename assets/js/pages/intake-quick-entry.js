@@ -3,10 +3,18 @@
 // ═════════════════════════════════════════════════════════════════════
 
 (function() {
+    // ─── Field Mirroring: Quick Entry ↔ Detail Sections ──────────────
     const mirrorPairs = [
-        ['qeName',        'input[name="customer_name"]'],
-        ['qeAddress',     '#serviceAddress'],
-        ['qeDescription', '#issueDescription'],
+        ['qeFirstName',    '#customerFirstName'],
+        ['qeLastName',     '#customerLastName'],
+        ['qeStreet1',      '#streetAddress1'],
+        ['qeStreet2',      '#streetAddress2'],
+        ['qeCity',         '#serviceCity'],
+        ['qeDescription',  '#issueDescription'],
+        ['qeVehicleYear',  '#vehicleYear'],
+        ['qeVehicleMake',  '#vehicleMake'],
+        ['qeVehicleModel', '#vehicleModel'],
+        ['qeVehicleColor', '#vehicleColor'],
     ];
 
     mirrorPairs.forEach(([qeId, detailSel]) => {
@@ -33,6 +41,29 @@
             syncing = false;
         });
     });
+
+    // ─── State Select Mirroring ──────────────────────────────────────
+    const qeState = document.getElementById('qeState');
+    const serviceState = document.getElementById('serviceState');
+    if (qeState && serviceState) {
+        let syncing = false;
+        qeState.addEventListener('change', () => {
+            if (syncing) return;
+            syncing = true;
+            serviceState.value = qeState.value;
+            serviceState.classList.add('synced');
+            setTimeout(() => serviceState.classList.remove('synced'), 400);
+            syncing = false;
+        });
+        serviceState.addEventListener('change', () => {
+            if (syncing) return;
+            syncing = true;
+            qeState.value = serviceState.value;
+            qeState.classList.add('synced');
+            setTimeout(() => qeState.classList.remove('synced'), 400);
+            syncing = false;
+        });
+    }
 
     const qePhone = document.getElementById('qePhone');
     const detailPhone = document.getElementById('customerPhone');
@@ -80,9 +111,11 @@
     const origFillCustomer = window.fillCustomer;
     window.fillCustomer = function(cust) {
         origFillCustomer(cust);
-        const qeN = document.getElementById('qeName');
+        const qeFN = document.getElementById('qeFirstName');
+        const qeLN = document.getElementById('qeLastName');
         const qeP = document.getElementById('qePhone');
-        if (qeN) qeN.value = (cust.first_name + ' ' + cust.last_name).trim();
+        if (qeFN) qeFN.value = cust.first_name || '';
+        if (qeLN) qeLN.value = cust.last_name || '';
         if (qeP) {
             const digits = (cust.phone || '').replace(/\D/g, '').slice(0, 10);
             phoneMaskApply(qeP, digits);

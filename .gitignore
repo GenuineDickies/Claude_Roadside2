@@ -9,11 +9,23 @@ Desktop.ini
 *.swo
 *~
 
+# Local Copilot/agent artifacts
+.claude/
+.mcp.json
+
+# Dev convenience symlinks (do not commit)
+_working/api
+_working/assets
+_working/config
+_working/includes
+_working/pages
+
 # Environment & secrets — NEVER commit credentials
 .env
 .env.local
 .env.production
 config/database.local.php
+siteground/sms-webhook/config.php
 
 # PHP
 vendor/

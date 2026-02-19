@@ -28,12 +28,13 @@
                         <?php
                         $phone_value = '';
                         if (isset($customer['phone']) && !empty($customer['phone'])) {
-                            $phone_value = $customer['phone'];
+                            // Format phone for display using the helper
+                            $phone_value = format_phone($customer['phone']);
                         }
                         ?>
                         <input type="tel" class="form-control phone-masked" id="phone" name="phone"
                                value="<?php echo htmlspecialchars($phone_value); ?>"
-                               required>
+                               maxlength="14" required>
                     </div>
                 </div>
                 <div class="col-md-6">

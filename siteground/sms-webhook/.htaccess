@@ -1,0 +1,13 @@
+Options -Indexes
+
+# Allow /webhook.php/poll style PATH_INFO
+AcceptPathInfo On
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Route /sms-webhook/poll to webhook.php/poll (PATH_INFO)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(poll|mark-processed|status)/?$ webhook.php/$1 [L,QSA]
+</IfModule>

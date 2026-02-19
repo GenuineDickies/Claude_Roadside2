@@ -96,12 +96,18 @@ if ($page === 'logout') {
 
                 <div class="rr-nav-section">Catalog</div>
                 <a class="rr-nav-link <?php echo $page==='services'?'active':''; ?>" href="?page=services">
-                    <i class="fas fa-wrench"></i> Services
+                    <i class="fas fa-book-open"></i> Parts/Service Catalog
                 </a>
 
                 <div class="rr-nav-section">System</div>
                 <a class="rr-nav-link <?php echo $page==='director'?'active':''; ?>" href="?page=director">
                     <i class="fas fa-satellite-dish"></i> Director
+                </a>
+                <a class="rr-nav-link <?php echo $page==='sms-knowledge'?'active':''; ?>" href="?page=sms-knowledge">
+                    <i class="fas fa-comment-sms"></i> SMS Docs
+                </a>
+                <a class="rr-nav-link <?php echo $page==='sms-settings'?'active':''; ?>" href="?page=sms-settings">
+                    <i class="fas fa-sliders-h"></i> SMS Settings
                 </a>
             </nav>
             <div class="rr-nav-footer">
@@ -130,6 +136,8 @@ if ($page === 'logout') {
                     case 'compliance':      include 'pages/compliance.php'; break;
                     case 'services':        include 'services.php'; break;
                     case 'director':        include 'pages/director.php'; break;
+                    case 'sms-knowledge':   include 'pages/sms-knowledge.php'; break;
+                    case 'sms-settings':    include 'pages/sms-settings.php'; break;
                     default:                include 'pages/dashboard.php';
                 }
                 ?>
@@ -142,5 +150,6 @@ if ($page === 'logout') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/app.js"></script>
+    <script src="assets/js/phone-mask.js"></script>
 </body>
 </html>

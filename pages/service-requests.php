@@ -162,7 +162,7 @@ if ($action === 'list') {
     </div>
     <div class="header-actions">
         <?php if ($action === 'list'): ?>
-            <a href="?page=service-requests&action=add" class="btn btn-primary"><i class="fas fa-plus"></i> New Request</a>
+            <a href="?page=service-intake" class="btn btn-primary"><i class="fas fa-plus"></i> New Request</a>
         <?php else: ?>
             <a href="?page=service-requests" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to List</a>
         <?php endif; ?>
@@ -171,8 +171,6 @@ if ($action === 'list') {
 
 <?php if ($action === 'list'): ?>
     <?php include __DIR__ . '/service-requests/list.php'; ?>
-<?php elseif ($action === 'add'): ?>
-    <?php include __DIR__ . '/service-requests/add.php'; ?>
 <?php elseif ($action === 'edit' && $request): ?>
     <?php include __DIR__ . '/service-requests/edit.php'; ?>
 <?php elseif ($action === 'view' && $request): ?>
